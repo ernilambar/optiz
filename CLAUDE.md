@@ -76,8 +76,6 @@ Manager                  ← orchestrates: WP hooks, get(), save()
 ]
 ```
 
-A schema with a top-level `fields` key (no tabs) is silently wrapped into a single tab with `id='default'` and `label=''`.
-
 `depends_on` is always normalised to an array of condition arrays: `[['field'=>'x','value'=>'y'], ...]`. A developer-supplied shorthand `['field'=>'x','value'=>'y']` is wrapped automatically.
 
 ### Manager lifecycle

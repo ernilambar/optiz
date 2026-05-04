@@ -28,8 +28,8 @@ class Parser {
 			return new \WP_Error( 'missing_page_menu_slug', '"page.menu_slug" is required.' );
 		}
 
-		if ( empty( $raw['tabs'] ) && empty( $raw['fields'] ) ) {
-			return new \WP_Error( 'missing_fields', 'Schema must include "tabs" or "fields".' );
+		if ( empty( $raw['tabs'] ) || ! is_array( $raw['tabs'] ) ) {
+			return new \WP_Error( 'missing_tabs', '"tabs" is required and must be a non-empty array.' );
 		}
 
 		$schema = [
@@ -38,11 +38,7 @@ class Parser {
 			'tabs'       => [],
 		];
 
-		$raw_tabs = ! empty( $raw['tabs'] )
-			? $raw['tabs']
-			: [ [ 'id' => 'default', 'label' => '', 'fields' => $raw['fields'] ] ];
-
-		foreach ( $raw_tabs as $tab ) {
+		foreach ( $raw['tabs'] as $tab ) {
 			$result = $this->normalize_tab( $tab );
 			if ( is_wp_error( $result ) ) {
 				return $result;
