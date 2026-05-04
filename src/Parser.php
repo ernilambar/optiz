@@ -88,6 +88,7 @@ class Parser {
 	private function normalize_page( array $page ): array {
 		return [
 			'title'       => $page['title'],
+			'menu_title'  => $page['menu_title'] ?? $page['title'],
 			'menu_slug'   => $page['menu_slug'],
 			'capability'  => $page['capability'] ?? 'manage_options',
 			'icon_url'    => $page['icon_url'] ?? '',

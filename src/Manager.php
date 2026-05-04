@@ -108,7 +108,7 @@ class Manager {
 			$this->page_hook = add_submenu_page(
 				$page['parent_slug'],
 				$page['title'],
-				$page['title'],
+				$page['menu_title'],
 				$page['capability'],
 				$page['menu_slug'],
 				[ $this, 'render_page' ]
@@ -116,7 +116,7 @@ class Manager {
 		} else {
 			$this->page_hook = add_menu_page(
 				$page['title'],
-				$page['title'],
+				$page['menu_title'],
 				$page['capability'],
 				$page['menu_slug'],
 				[ $this, 'render_page' ],

@@ -58,7 +58,7 @@ Manager                  ← orchestrates: WP hooks, get(), save()
 ```php
 [
   'option_key' => 'sanitized_string',
-  'page'       => [ 'title', 'menu_slug', 'capability', 'icon_url', 'position', 'parent_slug' ],
+  'page'       => [ 'title', 'menu_title', 'menu_slug', 'capability', 'icon_url', 'position', 'parent_slug' ],
   'tabs'       => [
     [
       'id'     => 'string',
