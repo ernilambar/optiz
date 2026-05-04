@@ -94,7 +94,9 @@ class Renderer {
 			? ' for="optiz_' . esc_attr( $field['id'] ) . '"'
 			: '';
 
-		echo '<tr class="optiz-field-wrap"' . $wrapper_attrs . '>';
+		$row_class = 'optiz-field-wrap optiz-field-type-' . esc_attr( $field['type'] ) . ' optiz-field-id-' . esc_attr( $field['id'] );
+
+		echo '<tr class="' . esc_attr( $row_class ) . '"' . $wrapper_attrs . '>';
 		echo '<th scope="row"><label' . $label_for . '>' . esc_html( $field['label'] ) . '</label></th>';
 		echo '<td>';
 		echo $input_html; // phpcs:ignore WordPress.Security.EscapeOutput -- pre-escaped by render_*_field methods
@@ -107,7 +109,7 @@ class Renderer {
 
 	private function render_text_field( array $field, $value, string $option_key ): string {
 		return sprintf(
-			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="regular-text"%s>',
+			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -118,7 +120,7 @@ class Renderer {
 
 	private function render_email_field( array $field, $value, string $option_key ): string {
 		return sprintf(
-			'<input type="email" id="optiz_%s" name="%s[%s]" value="%s" class="regular-text"%s>',
+			'<input type="email" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -129,7 +131,7 @@ class Renderer {
 
 	private function render_url_field( array $field, $value, string $option_key ): string {
 		return sprintf(
-			'<input type="url" id="optiz_%s" name="%s[%s]" value="%s" class="regular-text"%s>',
+			'<input type="url" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -140,7 +142,7 @@ class Renderer {
 
 	private function render_number_field( array $field, $value, string $option_key ): string {
 		return sprintf(
-			'<input type="number" id="optiz_%s" name="%s[%s]" value="%s"%s>',
+			'<input type="number" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -151,7 +153,7 @@ class Renderer {
 
 	private function render_color_field( array $field, $value, string $option_key ): string {
 		return sprintf(
-			'<input type="color" id="optiz_%s" name="%s[%s]" value="%s"%s>',
+			'<input type="color" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -162,7 +164,7 @@ class Renderer {
 
 	private function render_textarea_field( array $field, $value, string $option_key ): string {
 		return sprintf(
-			'<textarea id="optiz_%s" name="%s[%s]"%s>%s</textarea>',
+			'<textarea id="optiz_%s" name="%s[%s]" class="optiz-input"%s>%s</textarea>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -176,7 +178,7 @@ class Renderer {
 		$checked = $value ? ' checked' : '';
 		return '<input type="hidden" name="' . $name . '" value="0">'
 			. sprintf(
-				'<input type="checkbox" id="optiz_%s" name="%s" value="1"%s%s>',
+				'<input type="checkbox" id="optiz_%s" name="%s" value="1" class="optiz-input"%s%s>',
 				esc_attr( $field['id'] ),
 				$name,
 				$checked,
@@ -190,7 +192,7 @@ class Renderer {
 		return '<input type="hidden" name="' . $name . '" value="0">'
 			. '<label class="optiz-toggle">'
 			. sprintf(
-				'<input type="checkbox" id="optiz_%s" name="%s" value="1"%s%s>',
+				'<input type="checkbox" id="optiz_%s" name="%s" value="1" class="optiz-input"%s%s>',
 				esc_attr( $field['id'] ),
 				$name,
 				$checked,
@@ -212,7 +214,7 @@ class Renderer {
 		}
 
 		return sprintf(
-			'<select id="optiz_%s" name="%s[%s]"%s>%s</select>',
+			'<select id="optiz_%s" name="%s[%s]" class="optiz-input"%s>%s</select>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -237,7 +239,7 @@ class Renderer {
 			);
 		}
 
-		return '<fieldset>' . $inputs . '</fieldset>';
+		return '<fieldset class="optiz-radio-group">' . $inputs . '</fieldset>';
 	}
 
 	private function build_attrs( array $attrs ): string {
