@@ -82,17 +82,15 @@ class Manager {
 		$validator = new Validator();
 		$clean     = $validator->sanitize( $data, $schema );
 
-		$updated            = update_option( $schema['option_key'], $clean );
+		global $wpdb;
+
+		update_option( $schema['option_key'], $clean );
 		$this->option_cache = null;
 
 		// update_option returns false both on DB failure and when the value is
-		// unchanged. Only treat it as failure if the stored value differs from
-		// what we tried to save.
-		if ( ! $updated ) {
-			return get_option( $schema['option_key'] ) === $clean;
-		}
-
-		return true;
+		// unchanged. Use $wpdb->last_error to distinguish: a no-op update
+		// produces no DB error, a genuine failure does.
+		return empty( $wpdb->last_error );
 	}
 
 	public function register_page(): void {
