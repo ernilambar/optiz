@@ -119,7 +119,7 @@ class Manager {
 	}
 
 	public function render_page(): void {
-		( new Renderer() )->render_page( $this->registry );
+		( new Renderer() )->render_page( $this->registry, $this->key );
 	}
 
 	public function handle_save(): void {
