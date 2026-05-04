@@ -24,10 +24,11 @@ class Assets {
 			true
 		);
 
-		$rules           = [];
-		$has_code_field  = false;
-		$has_color_field = false;
-		$has_image_field = false;
+		$rules               = [];
+		$has_code_field      = false;
+		$has_color_field     = false;
+		$has_image_field     = false;
+		$has_buttonset_field = false;
 
 		foreach ( $schema['tabs'] as $tab ) {
 			foreach ( $tab['fields'] as $field ) {
@@ -47,6 +48,9 @@ class Assets {
 						break;
 					case 'image':
 						$has_image_field = true;
+						break;
+					case 'buttonset':
+						$has_buttonset_field = true;
 						break;
 				}
 			}
@@ -85,10 +89,27 @@ class Assets {
 			);
 		}
 
+		if ( $has_buttonset_field ) {
+			wp_add_inline_script( 'optiz-conditional', $this->buttonset_script(), 'after' );
+		}
+
 		if ( $has_image_field ) {
 			wp_enqueue_media();
 			wp_add_inline_script( 'optiz-conditional', $this->image_picker_script(), 'after' );
 		}
+	}
+
+	private function buttonset_script(): string {
+		return 'document.addEventListener("DOMContentLoaded",function(){' .
+			'document.querySelectorAll(".optiz-buttonset").forEach(function(bs){' .
+			'bs.addEventListener("change",function(e){' .
+			'if(e.target.type!=="radio")return;' .
+			'bs.querySelectorAll(".optiz-buttonset-item").forEach(function(item){' .
+			'item.classList.toggle("is-active",item.querySelector("input[type=\'radio\']")===e.target);' .
+			'});' .
+			'});' .
+			'});' .
+			'});';
 	}
 
 	private function image_picker_script(): string {
