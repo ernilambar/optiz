@@ -1,16 +1,20 @@
 {
-  "name": "nilambar/optiz",
+  "name": "ernilambar/optiz",
   "description": "Lightweight schema-driven settings framework for WordPress",
-  "type": "library",
   "license": "GPL-2.0-or-later",
-  "version": "1.0.0",
+  "type": "library",
+  "homepage": "https://github.com/ernilambar/optiz",
+  "support": {
+    "issues": "https://github.com/ernilambar/optiz/issues",
+    "source": "https://github.com/ernilambar/optiz"
+  },
   "require": {
     "php": ">=7.4"
   },
+  "minimum-stability": "stable",
   "autoload": {
     "psr-4": {
       "Nilambar\\Optiz\\": "src/"
     }
-  },
-  "minimum-stability": "stable"
+  }
 }

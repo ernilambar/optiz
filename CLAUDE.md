@@ -18,8 +18,8 @@ php -l src/*.php && php -l init.php
 # Run ad-hoc logic tests (no test runner; stubs replace WP functions inline)
 php -r "require 'vendor/autoload.php'; /* stub WP functions, then assert */"
 
-# Bump the library version (single source of truth)
-# Edit "version" in composer.json, then run:
+# Bump the library version (single source of truth: $version in init.php)
+# Edit $version in init.php, then run:
 composer install
 ```
 

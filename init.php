@@ -9,8 +9,7 @@ defined( 'ABSPATH' ) || exit;
 		$optiz_candidates = [];
 	}
 
-	$data    = json_decode( file_get_contents( __DIR__ . '/composer.json' ), true );
-	$version = $data['version'];
+	$version = '1.0.0';
 
 	$optiz_candidates[ $version ] = __DIR__;
 
