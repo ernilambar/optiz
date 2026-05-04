@@ -29,8 +29,6 @@ defined( 'ABSPATH' ) || exit;
 			$winner_dir     = end( $optiz_candidates );
 			$winner_version = key( $optiz_candidates );
 
-			require_once $winner_dir . '/vendor/autoload.php';
-
 			define( 'OPTIZ_LOADED_VERSION', $winner_version );
 			define( 'OPTIZ_DIR', $winner_dir );
 			define( 'OPTIZ_URL', plugin_dir_url( $winner_dir . '/init.php' ) );
