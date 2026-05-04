@@ -1,0 +1,58 @@
+/* Tab content visibility */
+.optiz-wrap .optiz-tab-content {
+	display: none;
+}
+
+.optiz-wrap .optiz-tab-content.is-active {
+	display: block;
+}
+
+/* Toggle switch */
+.optiz-wrap .optiz-toggle {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 24px;
+	vertical-align: middle;
+}
+
+.optiz-wrap .optiz-toggle input {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.optiz-wrap .optiz-toggle-slider {
+	position: absolute;
+	cursor: pointer;
+	inset: 0;
+	background-color: #ccc;
+	border-radius: 24px;
+	transition: background-color .25s;
+}
+
+.optiz-wrap .optiz-toggle-slider::before {
+	content: '';
+	position: absolute;
+	width: 18px;
+	height: 18px;
+	left: 3px;
+	bottom: 3px;
+	background-color: #fff;
+	border-radius: 50%;
+	transition: transform .25s;
+}
+
+.optiz-wrap .optiz-toggle input:checked + .optiz-toggle-slider {
+	background-color: #2271b1;
+}
+
+.optiz-wrap .optiz-toggle input:checked + .optiz-toggle-slider::before {
+	transform: translateX(20px);
+}
+
+.optiz-wrap .optiz-toggle input:focus-visible + .optiz-toggle-slider {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
