@@ -23,6 +23,11 @@ class Renderer {
 		echo '<div class="wrap optiz-wrap">';
 		echo '<h1>' . esc_html( $page['title'] ) . '</h1>';
 
+		$notice = get_transient( 'optiz_notices_' . $key );
+		if ( ! empty( $notice ) ) {
+			delete_transient( 'optiz_notices_' . $key );
+			add_settings_error( 'optiz_' . $key, 'optiz_notice', $notice['message'], $notice['type'] );
+		}
 		settings_errors( 'optiz_' . $key );
 
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';

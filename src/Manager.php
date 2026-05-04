@@ -147,13 +147,11 @@ class Manager {
 		$data   = isset( $_POST[ $option_key ] ) ? wp_unslash( (array) $_POST[ $option_key ] ) : [];
 		$result = $this->save( $data );
 
-		if ( $result ) {
-			add_settings_error( 'optiz_' . $this->key, 'optiz_saved', __( 'Settings saved.', 'optiz' ), 'success' );
-		} else {
-			add_settings_error( 'optiz_' . $this->key, 'optiz_error', __( 'Settings could not be saved.', 'optiz' ), 'error' );
-		}
+		$notice = $result
+			? [ 'type' => 'success', 'message' => __( 'Settings saved.', 'optiz' ) ]
+			: [ 'type' => 'error',   'message' => __( 'Settings could not be saved.', 'optiz' ) ];
 
-		set_transient( 'settings_errors', get_settings_errors(), 30 );
+		set_transient( 'optiz_notices_' . $this->key, $notice, 30 );
 
 		wp_safe_redirect(
 			add_query_arg(
