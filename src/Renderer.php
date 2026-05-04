@@ -75,13 +75,13 @@ class Renderer {
 			$value      = array_key_exists( $field['id'], $saved_values ) ? $saved_values[ $field['id'] ] : $field['default'];
 			$method     = 'render_' . $field['type'] . '_field';
 			$input_html = method_exists( $this, $method ) ? $this->$method( $field, $value, $option_key ) : '';
-			$this->render_field_wrap( $field, $input_html );
+			$this->render_field_wrap( $field, $input_html, $option_key );
 		}
 
 		echo '</tbody></table>';
 	}
 
-	private function render_field_wrap( array $field, string $input_html ): void {
+	private function render_field_wrap( array $field, string $input_html, string $option_key ): void {
 		$wrapper_attrs = '';
 
 		if ( ! empty( $field['depends_on'] ) ) {
@@ -99,7 +99,11 @@ class Renderer {
 		echo '<tr class="' . esc_attr( $row_class ) . '"' . $wrapper_attrs . '>';
 		echo '<th scope="row"><label' . $label_for . '>' . esc_html( $field['label'] ) . '</label></th>';
 		echo '<td>';
+		do_action( 'optiz_before_field', $field, $option_key );
+		do_action( 'optiz_before_field_' . $option_key . '_' . $field['id'], $field, $option_key );
 		echo $input_html; // phpcs:ignore WordPress.Security.EscapeOutput -- pre-escaped by render_*_field methods
+		do_action( 'optiz_after_field_' . $option_key . '_' . $field['id'], $field, $option_key );
+		do_action( 'optiz_after_field', $field, $option_key );
 		if ( ! empty( $field['description'] ) ) {
 			echo '<p class="description">' . esc_html( $field['description'] ) . '</p>';
 		}
