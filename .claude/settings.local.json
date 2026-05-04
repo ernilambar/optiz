@@ -3,7 +3,9 @@
     "allow": [
       "Bash(composer install *)",
       "Bash(php *)",
-      "Bash(composer lint *)"
+      "Bash(composer lint *)",
+      "Bash(git *)",
+      "Bash(xargs ls *)"
     ]
   }
 }
