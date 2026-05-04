@@ -9,6 +9,7 @@ class Manager {
 	private string $key;
 	private Registry $registry;
 	private ?array $option_cache = null;
+	private ?string $page_hook   = null;
 
 	private function __construct( string $key ) {
 		$this->key      = $key;
@@ -97,7 +98,7 @@ class Manager {
 		$page = $schema['page'];
 
 		if ( ! empty( $page['parent_slug'] ) ) {
-			add_submenu_page(
+			$this->page_hook = add_submenu_page(
 				$page['parent_slug'],
 				$page['title'],
 				$page['title'],
@@ -106,7 +107,7 @@ class Manager {
 				[ $this, 'render_page' ]
 			);
 		} else {
-			add_menu_page(
+			$this->page_hook = add_menu_page(
 				$page['title'],
 				$page['title'],
 				$page['capability'],
@@ -116,6 +117,16 @@ class Manager {
 				$page['position']
 			);
 		}
+
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+	}
+
+	public function enqueue_assets( string $hook ): void {
+		if ( null === $this->page_hook ) {
+			return;
+		}
+
+		( new Assets() )->enqueue( $hook, $this->page_hook, $this->registry->get_schema() );
 	}
 
 	public function render_page(): void {

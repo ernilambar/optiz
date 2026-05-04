@@ -32,5 +32,6 @@ defined( 'ABSPATH' ) || exit;
 
 		define( 'OPTIZ_LOADED_VERSION', $winner_version );
 		define( 'OPTIZ_DIR', $winner_dir );
+		define( 'OPTIZ_URL', plugin_dir_url( $winner_dir . '/init.php' ) );
 	}, 0 );
 } )();
