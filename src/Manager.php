@@ -82,10 +82,17 @@ class Manager {
 		$validator = new Validator();
 		$clean     = $validator->sanitize( $data, $schema );
 
-		$result             = (bool) update_option( $schema['option_key'], $clean );
+		$updated            = update_option( $schema['option_key'], $clean );
 		$this->option_cache = null;
 
-		return $result;
+		// update_option returns false both on DB failure and when the value is
+		// unchanged. Only treat it as failure if the stored value differs from
+		// what we tried to save.
+		if ( ! $updated ) {
+			return get_option( $schema['option_key'] ) === $clean;
+		}
+
+		return true;
 	}
 
 	public function register_page(): void {
