@@ -1,0 +1,16 @@
+{
+  "name": "nilambar/optiz",
+  "description": "Lightweight schema-driven settings framework for WordPress",
+  "type": "library",
+  "license": "GPL-2.0-or-later",
+  "version": "1.0.0",
+  "require": {
+    "php": ">=7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Nilambar\\Optiz\\": "src/"
+    }
+  },
+  "minimum-stability": "stable"
+}
