@@ -27,6 +27,20 @@
 		return ! wrapper || wrapper.style.display !== 'none';
 	};
 
+	const conditionMet = ( condition, value ) => {
+		const expected = condition.value;
+		const compare  = condition.compare || '===';
+
+		if ( typeof expected === 'boolean' ) {
+			const match = Boolean( value ) === expected;
+			return compare === '!==' ? ! match : match;
+		}
+
+		const strValue    = String( value );
+		const strExpected = String( expected );
+		return compare === '!==' ? strValue !== strExpected : strValue === strExpected;
+	};
+
 	const evaluateAll = () => {
 		let changed    = true;
 		let iterations = 0;
@@ -41,15 +55,7 @@
 
 				const shouldShow = rule.conditions.every( ( condition ) => {
 					if ( ! isVisible( condition.field ) ) return false;
-
-					const value    = getFieldValue( condition.field );
-					const expected = condition.value;
-
-					if ( typeof expected === 'boolean' ) {
-						return Boolean( value ) === expected;
-					}
-
-					return String( value ) === String( expected );
+					return conditionMet( condition, getFieldValue( condition.field ) );
 				} );
 
 				const currentlyVisible = wrapper.style.display !== 'none';

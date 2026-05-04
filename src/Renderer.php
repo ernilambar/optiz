@@ -55,7 +55,13 @@ class Renderer {
 	public function render_tabs( array $tabs, string $active_tab, string $menu_slug ): void {
 		echo '<h2 class="nav-tab-wrapper">';
 		foreach ( $tabs as $tab ) {
-			$url   = add_query_arg( [ 'page' => $menu_slug, 'tab' => $tab['id'] ], admin_url( 'admin.php' ) );
+			$url   = add_query_arg(
+				[
+					'page' => $menu_slug,
+					'tab'  => $tab['id'],
+				],
+				admin_url( 'admin.php' )
+			);
 			$class = 'nav-tab' . ( $tab['id'] === $active_tab ? ' nav-tab-active' : '' );
 			echo '<a href="' . esc_url( $url ) . '" class="' . esc_attr( $class ) . '">'
 				. esc_html( $tab['label'] ) . '</a>';
@@ -66,34 +72,64 @@ class Renderer {
 	public function render_fields( array $fields, array $saved_values, string $option_key ): void {
 		echo '<table class="form-table" role="presentation"><tbody>';
 
+		$hidden_inputs = '';
+
 		foreach ( $fields as $field ) {
-			$value      = array_key_exists( $field['id'], $saved_values ) ? $saved_values[ $field['id'] ] : $field['default'];
-			$method     = 'render_' . $field['type'] . '_field';
+			$value  = array_key_exists( $field['id'], $saved_values ) ? $saved_values[ $field['id'] ] : $field['default'];
+			$method = 'render_' . $field['type'] . '_field';
+
+			if ( 'hidden' === $field['type'] ) {
+				$hidden_inputs .= method_exists( $this, $method ) ? $this->$method( $field, $value, $option_key ) : '';
+				continue;
+			}
+
 			$input_html = method_exists( $this, $method ) ? $this->$method( $field, $value, $option_key ) : '';
 			$this->render_field_wrap( $field, $input_html, $option_key );
 		}
 
 		echo '</tbody></table>';
+
+		if ( $hidden_inputs ) {
+			echo $hidden_inputs; // phpcs:ignore WordPress.Security.EscapeOutput -- pre-escaped by render_hidden_field
+		}
 	}
 
 	private function render_field_wrap( array $field, string $input_html, string $option_key ): void {
-		$wrapper_attrs = '';
+		$is_display_only = in_array( $field['type'], [ 'heading', 'message' ], true );
+		$wrapper_attrs   = '';
 
 		if ( ! empty( $field['depends_on'] ) ) {
 			$json           = wp_json_encode( $field['depends_on'] );
 			$wrapper_attrs .= ' data-field-id="' . esc_attr( $field['id'] ) . '"';
-			$wrapper_attrs .= ' data-depends-on="' . esc_attr( $json ?: '[]' ) . '"';
+			$wrapper_attrs .= ' data-depends-on="' . esc_attr( $json ? $json : '[]' ) . '"';
 		}
 
-		$no_label_for = [ 'radio', 'multicheck', 'buttonset' ];
+		$row_class = 'optiz-field-wrap optiz-field-type-' . esc_attr( $field['type'] ) . ' optiz-field-id-' . esc_attr( $field['id'] );
+
+		echo '<tr class="' . esc_attr( $row_class ) . '"' . $wrapper_attrs . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $wrapper_attrs is built from esc_attr() calls
+
+		if ( $is_display_only ) {
+			echo '<td colspan="2">';
+			do_action( 'optiz_before_field', $field, $option_key );
+			do_action( 'optiz_before_field_' . $option_key . '_' . $field['id'], $field, $option_key );
+			echo $input_html; // phpcs:ignore WordPress.Security.EscapeOutput -- pre-escaped
+			do_action( 'optiz_after_field_' . $option_key . '_' . $field['id'], $field, $option_key );
+			do_action( 'optiz_after_field', $field, $option_key );
+			// heading shows its description; message content already comes from description.
+			if ( 'heading' === $field['type'] && ! empty( $field['description'] ) ) {
+				echo '<p class="description">' . esc_html( $field['description'] ) . '</p>';
+			}
+			echo '</td>';
+			echo '</tr>';
+			return;
+		}
+
+		$no_label_for = [ 'radio', 'multicheck', 'buttonset', 'radio_image' ];
 		$label_for    = ! in_array( $field['type'], $no_label_for, true )
 			? ' for="optiz_' . esc_attr( $field['id'] ) . '"'
 			: '';
 
-		$row_class = 'optiz-field-wrap optiz-field-type-' . esc_attr( $field['type'] ) . ' optiz-field-id-' . esc_attr( $field['id'] );
-
-		echo '<tr class="' . esc_attr( $row_class ) . '"' . $wrapper_attrs . '>';
-		echo '<th scope="row"><label' . $label_for . '>' . esc_html( $field['label'] ) . '</label></th>';
+		echo '<th scope="row"><label' . $label_for . '>' . esc_html( $field['label'] ) . '</label></th>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $label_for is built from esc_attr()
 		echo '<td>';
 		do_action( 'optiz_before_field', $field, $option_key );
 		do_action( 'optiz_before_field_' . $option_key . '_' . $field['id'], $field, $option_key );
@@ -108,52 +144,97 @@ class Renderer {
 	}
 
 	private function render_text_field( array $field, $value, string $option_key ): string {
+		$class = 'optiz-input regular-text';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
 		return sprintf(
-			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
+			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
 			esc_attr( (string) $value ),
-			$this->build_attrs( $field['attributes'] )
+			esc_attr( $class ),
+			$this->build_input_extra( $field )
 		);
 	}
 
 	private function render_email_field( array $field, $value, string $option_key ): string {
+		$class = 'optiz-input regular-text';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
 		return sprintf(
-			'<input type="email" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
+			'<input type="email" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
 			esc_attr( (string) $value ),
-			$this->build_attrs( $field['attributes'] )
+			esc_attr( $class ),
+			$this->build_input_extra( $field )
 		);
 	}
 
 	private function render_url_field( array $field, $value, string $option_key ): string {
+		$class = 'optiz-input regular-text';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
 		return sprintf(
-			'<input type="url" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
+			'<input type="url" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
 			esc_attr( (string) $value ),
-			$this->build_attrs( $field['attributes'] )
+			esc_attr( $class ),
+			$this->build_input_extra( $field )
 		);
 	}
 
 	private function render_number_field( array $field, $value, string $option_key ): string {
+		$class = 'optiz-input small-text';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
 		return sprintf(
-			'<input type="number" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input"%s>',
+			'<input type="number" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
 			esc_attr( (string) $value ),
-			$this->build_attrs( $field['attributes'] )
+			esc_attr( $class ),
+			$this->build_input_extra( $field )
+		);
+	}
+
+	private function render_password_field( array $field, $value, string $option_key ): string {
+		$class = 'optiz-input regular-text';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
+		return sprintf(
+			'<input type="password" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
+			esc_attr( $field['id'] ),
+			esc_attr( $option_key ),
+			esc_attr( $field['id'] ),
+			esc_attr( (string) $value ),
+			esc_attr( $class ),
+			$this->build_input_extra( $field )
+		);
+	}
+
+	private function render_hidden_field( array $field, $value, string $option_key ): string {
+		return sprintf(
+			'<input type="hidden" name="%s[%s]" value="%s">',
+			esc_attr( $option_key ),
+			esc_attr( $field['id'] ),
+			esc_attr( (string) $value )
 		);
 	}
 
 	private function render_color_field( array $field, $value, string $option_key ): string {
 		return sprintf(
-			'<input type="color" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input"%s>',
+			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input optiz-color-picker"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
@@ -163,12 +244,19 @@ class Renderer {
 	}
 
 	private function render_textarea_field( array $field, $value, string $option_key ): string {
+		$class = 'optiz-input large-text';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
+		$rows = isset( $field['rows'] ) ? (int) $field['rows'] : 5;
 		return sprintf(
-			'<textarea id="optiz_%s" name="%s[%s]" class="optiz-input"%s>%s</textarea>',
+			'<textarea id="optiz_%s" name="%s[%s]" rows="%d" class="%s"%s>%s</textarea>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
-			$this->build_attrs( $field['attributes'] ),
+			$rows,
+			esc_attr( $class ),
+			$this->build_input_extra( $field ),
 			esc_textarea( (string) $value )
 		);
 	}
@@ -176,34 +264,45 @@ class Renderer {
 	private function render_checkbox_field( array $field, $value, string $option_key ): string {
 		$name    = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
 		$checked = $value ? ' checked' : '';
-		return '<input type="hidden" name="' . $name . '" value="0">'
-			. sprintf(
-				'<input type="checkbox" id="optiz_%s" name="%s" value="1" class="optiz-input"%s%s>',
-				esc_attr( $field['id'] ),
-				$name,
-				$checked,
-				$this->build_attrs( $field['attributes'] )
-			);
+		$output  = '<input type="hidden" name="' . $name . '" value="0">';
+		$output .= sprintf(
+			'<input type="checkbox" id="optiz_%s" name="%s" value="1" class="optiz-input"%s%s>',
+			esc_attr( $field['id'] ),
+			$name,
+			$checked,
+			$this->build_attrs( $field['attributes'] )
+		);
+		if ( ! empty( $field['side_text'] ) ) {
+			$output .= ' <span class="optiz-side-text">' . esc_html( $field['side_text'] ) . '</span>';
+		}
+		return $output;
 	}
 
 	private function render_toggle_field( array $field, $value, string $option_key ): string {
 		$name    = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
 		$checked = $value ? ' checked' : '';
-		return '<input type="hidden" name="' . $name . '" value="0">'
-			. '<label class="optiz-toggle">'
-			. sprintf(
-				'<input type="checkbox" id="optiz_%s" name="%s" value="1" class="optiz-input"%s%s>',
-				esc_attr( $field['id'] ),
-				$name,
-				$checked,
-				$this->build_attrs( $field['attributes'] )
-			)
-			. '<span class="optiz-toggle-slider"></span>'
-			. '</label>';
+		$output  = '<input type="hidden" name="' . $name . '" value="0">';
+		$output .= '<label class="optiz-toggle">';
+		$output .= sprintf(
+			'<input type="checkbox" id="optiz_%s" name="%s" value="1" class="optiz-input"%s%s>',
+			esc_attr( $field['id'] ),
+			$name,
+			$checked,
+			$this->build_attrs( $field['attributes'] )
+		);
+		$output .= '<span class="optiz-toggle-slider"></span>';
+		$output .= '</label>';
+		if ( ! empty( $field['side_text'] ) ) {
+			$output .= ' <span class="optiz-side-text">' . esc_html( $field['side_text'] ) . '</span>';
+		}
+		return $output;
 	}
 
 	private function render_select_field( array $field, $value, string $option_key ): string {
 		$options = '';
+		if ( ! empty( $field['allow_null'] ) ) {
+			$options .= '<option value="">&mdash; ' . esc_html__( 'Select', 'optiz' ) . ' &mdash;</option>';
+		}
 		foreach ( $field['choices'] as $choice_value => $choice_label ) {
 			$options .= sprintf(
 				'<option value="%s"%s>%s</option>',
@@ -213,11 +312,17 @@ class Renderer {
 			);
 		}
 
+		$class = 'optiz-input';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
+
 		return sprintf(
-			'<select id="optiz_%s" name="%s[%s]" class="optiz-input"%s>%s</select>',
+			'<select id="optiz_%s" name="%s[%s]" class="%s"%s>%s</select>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
+			esc_attr( $class ),
 			$this->build_attrs( $field['attributes'] ),
 			$options
 		);
@@ -243,25 +348,72 @@ class Renderer {
 		return '<fieldset class="' . esc_attr( $class ) . '">' . $inputs . '</fieldset>';
 	}
 
-	private function render_password_field( array $field, $value, string $option_key ): string {
-		return sprintf(
-			'<input type="password" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
+	private function render_radio_image_field( array $field, $value, string $option_key ): string {
+		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
+		$class  = 'optiz-radio-image-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
+		$output = '<ul class="' . esc_attr( $class ) . '">';
+
+		foreach ( $field['choices'] as $choice_value => $image_url ) {
+			$id      = 'optiz_' . $field['id'] . '_' . $choice_value;
+			$output .= '<li>';
+			$output .= sprintf(
+				'<label><input type="radio" id="%s" name="%s" value="%s"%s><img src="%s" alt="%s"></label>',
+				esc_attr( $id ),
+				$name,
+				esc_attr( $choice_value ),
+				checked( $value, $choice_value, false ),
+				esc_url( (string) $image_url ),
+				esc_attr( (string) $choice_value )
+			);
+			$output .= '</li>';
+		}
+
+		$output .= '</ul>';
+		return $output;
+	}
+
+	private function render_image_field( array $field, $value, string $option_key ): string {
+		$has_value = ! empty( $value );
+		$output    = '<div class="optiz-image-field">';
+		$output   .= sprintf(
+			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text optiz-image-url">',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
-			esc_attr( (string) $value ),
-			$this->build_attrs( $field['attributes'] )
+			esc_attr( (string) $value )
 		);
+		$output   .= ' <button type="button" class="button optiz-upload-image">' . esc_html__( 'Upload Image', 'optiz' ) . '</button>';
+		$output   .= ' <button type="button" class="button optiz-remove-image"' . ( $has_value ? '' : ' style="display:none"' ) . '>' . esc_html__( 'Remove', 'optiz' ) . '</button>';
+		$output   .= '<div class="optiz-image-preview"' . ( $has_value ? '' : ' style="display:none"' ) . '>';
+		$output   .= '<img src="' . ( $has_value ? esc_url( (string) $value ) : '' ) . '" alt="">';
+		$output   .= '</div>';
+		$output   .= '</div>';
+		return $output;
+	}
+
+	private function render_heading_field( array $field, $value, string $option_key ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		return '<h2 class="optiz-heading">' . esc_html( $field['label'] ) . '</h2>';
+	}
+
+	private function render_message_field( array $field, $value, string $option_key ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		return '<div class="optiz-message">' . wp_kses_post( $field['description'] ) . '</div>';
 	}
 
 	private function render_code_field( array $field, $value, string $option_key ): string {
+		$class = 'optiz-input optiz-code-editor';
+		if ( ! empty( $field['class'] ) ) {
+			$class .= ' ' . $field['class'];
+		}
+		$rows = isset( $field['rows'] ) ? (int) $field['rows'] : 5;
 		return sprintf(
-			'<textarea id="optiz_%s" name="%s[%s]" class="optiz-input optiz-code-editor" data-code-type="%s"%s>%s</textarea>',
+			'<textarea id="optiz_%s" name="%s[%s]" class="%s" data-code-type="%s" rows="%d"%s>%s</textarea>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
+			esc_attr( $class ),
 			esc_attr( $field['mode'] ),
-			$this->build_attrs( $field['attributes'] ),
+			$rows,
+			$this->build_input_extra( $field ),
 			esc_textarea( (string) $value )
 		);
 	}
@@ -307,10 +459,10 @@ class Renderer {
 		$output = '<div class="optiz-buttonset">';
 
 		foreach ( $field['choices'] as $choice_value => $choice_label ) {
-			$id       = 'optiz_' . $field['id'] . '_' . $choice_value;
-			$checked  = checked( $value, $choice_value, false );
+			$id        = 'optiz_' . $field['id'] . '_' . $choice_value;
+			$checked   = checked( $value, $choice_value, false );
 			$is_active = ( (string) $value === (string) $choice_value ) ? ' is-active' : '';
-			$output  .= sprintf(
+			$output   .= sprintf(
 				'<label class="optiz-buttonset-item%s"><input type="radio" id="%s" name="%s" value="%s"%s> %s</label>',
 				$is_active,
 				esc_attr( $id ),
@@ -322,6 +474,18 @@ class Renderer {
 		}
 
 		$output .= '</div>';
+		return $output;
+	}
+
+	/**
+	 * Builds extra HTML attributes: placeholder (if set on the field) + field attributes array.
+	 */
+	private function build_input_extra( array $field ): string {
+		$output = '';
+		if ( isset( $field['placeholder'] ) && '' !== $field['placeholder'] ) {
+			$output .= ' placeholder="' . esc_attr( $field['placeholder'] ) . '"';
+		}
+		$output .= $this->build_attrs( $field['attributes'] );
 		return $output;
 	}
 

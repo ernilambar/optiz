@@ -2,6 +2,8 @@
 
 namespace Nilambar\Optiz;
 
+use RuntimeException;
+
 class Manager {
 
 	private static array $instances = [];
@@ -37,7 +39,7 @@ class Manager {
 
 	public static function instance( string $key ): self {
 		if ( ! isset( self::$instances[ $key ] ) ) {
-			throw new \RuntimeException(
+			throw new RuntimeException(
 				sprintf( 'Optiz instance "%s" is not registered.', esc_html( $key ) )
 			);
 		}
@@ -45,11 +47,11 @@ class Manager {
 		return self::$instances[ $key ];
 	}
 
-	public function get( string $field_id, $default = null ) {
+	public function get( string $field_id, $fallback = null ) {
 		$schema = $this->registry->get_schema();
 
 		if ( empty( $schema ) ) {
-			return $default;
+			return $fallback;
 		}
 
 		if ( null === $this->option_cache ) {
@@ -69,7 +71,7 @@ class Manager {
 			}
 		}
 
-		return $default;
+		return $fallback;
 	}
 
 	public function save( array $data ): bool {
@@ -138,6 +140,19 @@ class Manager {
 		( new Renderer() )->render_page( $this->registry, $this->key );
 	}
 
+	public function get_page_url(): string {
+		$schema = $this->registry->get_schema();
+
+		if ( empty( $schema ) ) {
+			return '';
+		}
+
+		$page   = $schema['page'];
+		$parent = ! empty( $page['parent_slug'] ) ? $page['parent_slug'] : 'admin.php';
+
+		return add_query_arg( [ 'page' => $page['menu_slug'] ], admin_url( $parent ) );
+	}
+
 	public function handle_save(): void {
 		$schema     = $this->registry->get_schema();
 		$option_key = $schema['option_key'];
@@ -148,8 +163,14 @@ class Manager {
 		$result = $this->save( $data );
 
 		$notice = $result
-			? [ 'type' => 'success', 'message' => __( 'Settings saved.', 'optiz' ) ]
-			: [ 'type' => 'error',   'message' => __( 'Settings could not be saved.', 'optiz' ) ];
+			? [
+				'type'    => 'success',
+				'message' => __( 'Settings saved.', 'optiz' ),
+			]
+			: [
+				'type'    => 'error',
+				'message' => __( 'Settings could not be saved.', 'optiz' ),
+			];
 
 		set_transient( 'optiz_notices_' . $this->key, $notice, 30 );
 

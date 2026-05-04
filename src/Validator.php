@@ -4,11 +4,17 @@ namespace Nilambar\Optiz;
 
 class Validator {
 
+	private const DISPLAY_ONLY_TYPES = [ 'heading', 'message' ];
+
 	public function sanitize( array $raw, array $schema ): array {
 		$clean = [];
 
 		foreach ( $schema['tabs'] as $tab ) {
 			foreach ( $tab['fields'] as $field ) {
+				if ( in_array( $field['type'], self::DISPLAY_ONLY_TYPES, true ) ) {
+					continue;
+				}
+
 				$id           = $field['id'];
 				$value        = $raw[ $id ] ?? null;
 				$clean[ $id ] = $this->sanitize_field( $field, $value );
@@ -38,6 +44,7 @@ class Validator {
 				return sanitize_email( (string) $value );
 
 			case 'url':
+			case 'image':
 				return esc_url_raw( (string) $value );
 
 			case 'number':
@@ -49,12 +56,16 @@ class Validator {
 
 			case 'select':
 			case 'radio':
+			case 'radio_image':
 				$str = (string) $value;
 				return array_key_exists( $str, $field['choices'] ) ? $str : $field['default'];
 
 			case 'color':
-				$str = (string) $value;
-				return preg_match( '/^#([a-fA-F0-9]{3}|[a-fA-F0-9]{6})$/', $str ) ? $str : $field['default'];
+				$sanitized = sanitize_hex_color( (string) $value );
+				return null !== $sanitized ? $sanitized : (string) $field['default'];
+
+			case 'hidden':
+				return sanitize_text_field( (string) $value );
 
 			case 'password':
 			case 'code':
