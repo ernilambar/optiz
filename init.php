@@ -19,18 +19,22 @@ defined( 'ABSPATH' ) || exit;
 
 	define( 'OPTIZ_ELECTION_HOOKED', true );
 
-	add_action( 'plugins_loaded', static function () {
-		global $optiz_candidates;
+	add_action(
+		'plugins_loaded',
+		static function () {
+			global $optiz_candidates;
 
-		uksort( $optiz_candidates, 'version_compare' );
+			uksort( $optiz_candidates, 'version_compare' );
 
-		$winner_dir     = end( $optiz_candidates );
-		$winner_version = key( $optiz_candidates );
+			$winner_dir     = end( $optiz_candidates );
+			$winner_version = key( $optiz_candidates );
 
-		require_once $winner_dir . '/vendor/autoload.php';
+			require_once $winner_dir . '/vendor/autoload.php';
 
-		define( 'OPTIZ_LOADED_VERSION', $winner_version );
-		define( 'OPTIZ_DIR', $winner_dir );
-		define( 'OPTIZ_URL', plugin_dir_url( $winner_dir . '/init.php' ) );
-	}, 0 );
+			define( 'OPTIZ_LOADED_VERSION', $winner_version );
+			define( 'OPTIZ_DIR', $winner_dir );
+			define( 'OPTIZ_URL', plugin_dir_url( $winner_dir . '/init.php' ) );
+		},
+		0
+	);
 } )();

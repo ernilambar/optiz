@@ -127,4 +127,4 @@ Multiple conditions can be passed as an array of condition arrays. Chained depen
 
 ## License
 
-GPL-2.0-or-later
+MIT

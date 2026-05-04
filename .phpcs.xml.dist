@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<ruleset name="optiz">
+	<description>PHP_CodeSniffer rules for optiz.</description>
+
+	<file>.</file>
+
+	<!-- Exclude files and folders -->
+	<exclude-pattern>*/assets/*</exclude-pattern>
+	<exclude-pattern>*/build/*</exclude-pattern>
+	<exclude-pattern>*/deploy/*</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/phpunit.xml*</exclude-pattern>
+	<exclude-pattern>*lib/*</exclude-pattern>
+	<exclude-pattern>*\.(css|js)</exclude-pattern>
+
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+
+	<config name="minimum_supported_wp_version" value="6.9"/>
+
+	<!-- PHP version check. -->
+	<config name="testVersion" value="7.4-"/>
+
+	<rule ref="WordPress-Core">
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+	</rule>
+
+	<!-- Enforce short arrays. -->
+	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+
+	<rule ref="WordPress-Extra">
+		<!-- Forget about file names -->
+		<exclude name="WordPress.Files.FileName"/>
+
+		<!-- Allow WP global modification -->
+		<exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/>
+
+		<!-- This nonce sniff almost never works right -->
+		<exclude name="WordPress.Security.NonceVerification.Missing"/>
+
+		<!-- Remove nonce notice -->
+		<exclude name="WordPress.Security.NonceVerification.Recommended"/>
+	</rule>
+
+	<!-- Loads the PHP Compatibility ruleset. -->
+	<rule ref="PHPCompatibility">
+		<exclude name="PHPCompatibility.FunctionUse.NewFunctions.str_containsFound"/>
+		<exclude name="PHPCompatibility.FunctionUse.NewFunctions.str_starts_withFound"/>
+		<exclude name="PHPCompatibility.FunctionUse.NewFunctions.str_ends_withFound"/>
+	</rule>
+
+	<!-- Disallows grouped use declarations. -->
+	<rule ref="SlevomatCodingStandard.Namespaces.DisallowGroupUse" />
+	<!-- Disallows leading backslash in use statement. -->
+	<rule ref="SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash" />
+	<!-- Checks whether uses at the top of a file are alphabetically sorted. -->
+	<rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses" />
+	<!-- Prohibits uses from the same namespace. -->
+	<rule ref="SlevomatCodingStandard.Namespaces.UseFromSameNamespace" />
+	<!-- Looks for unused imports from other namespaces. -->
+	<rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">
+		<properties>
+			<property name="searchAnnotations" value="true" />
+		</properties>
+	</rule>
+	<!-- All references to functions, classes and constants should import using a use statement. -->
+	<rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
+		<properties>
+			<property name="allowFallbackGlobalConstants" value="true" />
+			<property name="allowFallbackGlobalFunctions" value="true" />
+			<property name="allowFullyQualifiedExceptions" value="false" />
+			<property name="allowFullyQualifiedGlobalClasses" value="false" />
+			<property name="allowFullyQualifiedGlobalConstants" value="true" />
+			<property name="allowFullyQualifiedGlobalFunctions" value="true" />
+			<property name="allowFullyQualifiedNameForCollidingClasses" value="true" />
+		</properties>
+	</rule>
+
+</ruleset>

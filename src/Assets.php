@@ -24,8 +24,10 @@ class Assets {
 			true
 		);
 
-		$rules          = [];
-		$has_code_field = false;
+		$rules           = [];
+		$has_code_field  = false;
+		$has_color_field = false;
+		$has_image_field = false;
 
 		foreach ( $schema['tabs'] as $tab ) {
 			foreach ( $tab['fields'] as $field ) {
@@ -35,8 +37,17 @@ class Assets {
 						'conditions' => $field['depends_on'],
 					];
 				}
-				if ( 'code' === $field['type'] ) {
-					$has_code_field = true;
+
+				switch ( $field['type'] ) {
+					case 'code':
+						$has_code_field = true;
+						break;
+					case 'color':
+						$has_color_field = true;
+						break;
+					case 'image':
+						$has_image_field = true;
+						break;
 				}
 			}
 		}
@@ -47,7 +58,11 @@ class Assets {
 			$editor_settings = wp_enqueue_code_editor( [ 'type' => 'text/plain' ] );
 
 			if ( false !== $editor_settings ) {
-				$mime_map = [ 'text' => 'text/plain', 'css' => 'text/css', 'js' => 'text/javascript' ];
+				$mime_map = [
+					'text' => 'text/plain',
+					'css'  => 'text/css',
+					'js'   => 'text/javascript',
+				];
 				wp_add_inline_script(
 					'code-editor',
 					'document.addEventListener("DOMContentLoaded",function(){' .
@@ -60,5 +75,56 @@ class Assets {
 				);
 			}
 		}
+
+		if ( $has_color_field ) {
+			wp_enqueue_style( 'wp-color-picker' );
+			wp_enqueue_script( 'wp-color-picker' );
+			wp_add_inline_script(
+				'wp-color-picker',
+				'jQuery(function($){$(".optiz-color-picker").wpColorPicker();});'
+			);
+		}
+
+		if ( $has_image_field ) {
+			wp_enqueue_media();
+			wp_add_inline_script( 'optiz-conditional', $this->image_picker_script(), 'after' );
+		}
+	}
+
+	private function image_picker_script(): string {
+		return 'document.addEventListener("DOMContentLoaded",function(){' .
+			'document.querySelectorAll(".optiz-image-field").forEach(function(w){' .
+			'var u=w.querySelector(".optiz-image-url");' .
+			'var up=w.querySelector(".optiz-upload-image");' .
+			'var rm=w.querySelector(".optiz-remove-image");' .
+			'var pv=w.querySelector(".optiz-image-preview");' .
+			'var pi=pv?pv.querySelector("img"):null;' .
+			'if(!up||!u)return;' .
+			'var fr;' .
+			'up.addEventListener("click",function(e){' .
+			'e.preventDefault();' .
+			'if(!fr){' .
+			'fr=wp.media({title:"Select Image",button:{text:"Use this image"},multiple:false});' .
+			'fr.on("select",function(){' .
+			'var a=fr.state().get("selection").first().toJSON();' .
+			'u.value=a.url;' .
+			'if(pi){pi.src=a.url;}' .
+			'if(pv){pv.style.display="";}' .
+			'if(rm){rm.style.display="";}' .
+			'});' .
+			'}' .
+			'fr.open();' .
+			'});' .
+			'if(rm){' .
+			'rm.addEventListener("click",function(e){' .
+			'e.preventDefault();' .
+			'u.value="";' .
+			'if(pi){pi.src="";}' .
+			'if(pv){pv.style.display="none";}' .
+			'rm.style.display="none";' .
+			'});' .
+			'}' .
+			'});' .
+			'});';
 	}
 }
