@@ -176,11 +176,8 @@ class Manager {
 
 		wp_safe_redirect(
 			add_query_arg(
-				[
-					'page' => $schema['page']['menu_slug'],
-					'tab'  => isset( $_POST['current_tab'] ) ? sanitize_key( wp_unslash( $_POST['current_tab'] ) ) : '',
-				],
-				admin_url( 'admin.php' )
+				[ 'tab' => isset( $_POST['current_tab'] ) ? sanitize_key( wp_unslash( $_POST['current_tab'] ) ) : '' ],
+				$this->get_page_url()
 			)
 		);
 		exit;
