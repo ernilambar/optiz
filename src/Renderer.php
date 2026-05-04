@@ -90,7 +90,8 @@ class Renderer {
 			$wrapper_attrs .= ' data-depends-on="' . esc_attr( $json ?: '[]' ) . '"';
 		}
 
-		$label_for = ( 'radio' !== $field['type'] )
+		$no_label_for = [ 'radio', 'multicheck', 'buttonset' ];
+		$label_for    = ! in_array( $field['type'], $no_label_for, true )
 			? ' for="optiz_' . esc_attr( $field['id'] ) . '"'
 			: '';
 
@@ -244,6 +245,87 @@ class Renderer {
 		}
 
 		return '<fieldset class="optiz-radio-group">' . $inputs . '</fieldset>';
+	}
+
+	private function render_password_field( array $field, $value, string $option_key ): string {
+		return sprintf(
+			'<input type="password" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text"%s>',
+			esc_attr( $field['id'] ),
+			esc_attr( $option_key ),
+			esc_attr( $field['id'] ),
+			esc_attr( (string) $value ),
+			$this->build_attrs( $field['attributes'] )
+		);
+	}
+
+	private function render_code_field( array $field, $value, string $option_key ): string {
+		return sprintf(
+			'<textarea id="optiz_%s" name="%s[%s]" class="optiz-input optiz-code-editor" data-code-type="%s"%s>%s</textarea>',
+			esc_attr( $field['id'] ),
+			esc_attr( $option_key ),
+			esc_attr( $field['id'] ),
+			esc_attr( $field['mode'] ),
+			$this->build_attrs( $field['attributes'] ),
+			esc_textarea( (string) $value )
+		);
+	}
+
+	private function render_multicheck_field( array $field, $value, string $option_key ): string {
+		$value  = is_array( $value ) ? $value : [];
+		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . '][]';
+		$output = '<div class="optiz-multicheck-group">';
+
+		foreach ( $field['choices'] as $choice_value => $choice_label ) {
+			$id      = 'optiz_' . $field['id'] . '_' . $choice_value;
+			$checked = in_array( (string) $choice_value, array_map( 'strval', $value ), true ) ? ' checked' : '';
+			$output .= sprintf(
+				'<label class="optiz-multicheck-item"><input type="checkbox" id="%s" name="%s" value="%s"%s class="optiz-input"> %s</label>',
+				esc_attr( $id ),
+				$name,
+				esc_attr( $choice_value ),
+				$checked,
+				esc_html( $choice_label )
+			);
+		}
+
+		$output .= '</div>';
+		return $output;
+	}
+
+	private function render_editor_field( array $field, $value, string $option_key ): string {
+		$settings = [
+			'textarea_name' => $option_key . '[' . $field['id'] . ']',
+			'editor_class'  => 'optiz-input',
+			'teeny'         => true,
+			'media_buttons' => false,
+		];
+
+		ob_start();
+		wp_editor( wp_kses_post( (string) $value ), 'optiz_' . $field['id'], $settings );
+		return ob_get_clean();
+	}
+
+	private function render_buttonset_field( array $field, $value, string $option_key ): string {
+		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
+		$output = '<div class="optiz-buttonset">';
+
+		foreach ( $field['choices'] as $choice_value => $choice_label ) {
+			$id       = 'optiz_' . $field['id'] . '_' . $choice_value;
+			$checked  = checked( $value, $choice_value, false );
+			$is_active = ( (string) $value === (string) $choice_value ) ? ' is-active' : '';
+			$output  .= sprintf(
+				'<label class="optiz-buttonset-item%s"><input type="radio" id="%s" name="%s" value="%s"%s> %s</label>',
+				$is_active,
+				esc_attr( $id ),
+				$name,
+				esc_attr( $choice_value ),
+				$checked,
+				esc_html( $choice_label )
+			);
+		}
+
+		$output .= '</div>';
+		return $output;
 	}
 
 	private function build_attrs( array $attrs ): string {

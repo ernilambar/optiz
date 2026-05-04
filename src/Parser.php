@@ -7,9 +7,14 @@ class Parser {
 	private const FIELD_TYPES = [
 		'text', 'textarea', 'email', 'url', 'number',
 		'checkbox', 'toggle', 'select', 'radio', 'color',
+		'password', 'code', 'multicheck', 'editor', 'buttonset',
 	];
 
 	private const BOOLEAN_TYPES = [ 'checkbox', 'toggle' ];
+
+	private const ARRAY_TYPES = [ 'multicheck' ];
+
+	private const CODE_MODES = [ 'text', 'css', 'js' ];
 
 	public function parse( array $raw ) {
 		if ( empty( $raw['option_key'] ) || ! is_string( $raw['option_key'] ) ) {
@@ -121,19 +126,27 @@ class Parser {
 			);
 		}
 
-		$is_bool = in_array( $field['type'], self::BOOLEAN_TYPES, true );
+		$is_bool  = in_array( $field['type'], self::BOOLEAN_TYPES, true );
+		$is_array = in_array( $field['type'], self::ARRAY_TYPES, true );
 
-		return [
+		$normalized = [
 			'id'                => $field['id'],
 			'type'              => $field['type'],
 			'label'             => $field['label'],
-			'default'           => $field['default']           ?? ( $is_bool ? false : '' ),
+			'default'           => $field['default']           ?? ( $is_bool ? false : ( $is_array ? [] : '' ) ),
 			'description'       => $field['description']       ?? '',
 			'attributes'        => $field['attributes']        ?? [],
 			'choices'           => $field['choices']           ?? [],
 			'depends_on'        => $this->normalize_depends_on( $field['depends_on'] ?? [] ),
 			'sanitize_callback' => $field['sanitize_callback'] ?? null,
 		];
+
+		if ( 'code' === $field['type'] ) {
+			$mode                = $field['mode'] ?? 'text';
+			$normalized['mode'] = in_array( $mode, self::CODE_MODES, true ) ? $mode : 'text';
+		}
+
+		return $normalized;
 	}
 
 	private function normalize_depends_on( $depends_on ): array {

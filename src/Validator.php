@@ -56,6 +56,24 @@ class Validator {
 				$str = (string) $value;
 				return preg_match( '/^#([a-fA-F0-9]{3}|[a-fA-F0-9]{6})$/', $str ) ? $str : $field['default'];
 
+			case 'password':
+			case 'code':
+				return (string) $value;
+
+			case 'multicheck':
+				if ( ! is_array( $value ) ) {
+					return [];
+				}
+				$valid = array_keys( $field['choices'] );
+				return array_values( array_intersect( array_map( 'sanitize_text_field', $value ), $valid ) );
+
+			case 'editor':
+				return wp_kses_post( (string) $value );
+
+			case 'buttonset':
+				$str = (string) $value;
+				return array_key_exists( $str, $field['choices'] ) ? $str : $field['default'];
+
 			default:
 				return sanitize_text_field( (string) $value );
 		}

@@ -56,3 +56,66 @@
 	outline: 2px solid #2271b1;
 	outline-offset: 2px;
 }
+
+/* Code editor */
+.optiz-wrap .optiz-code-editor {
+	font-family: Consolas, Monaco, monospace;
+	font-size: 13px;
+	min-height: 200px;
+	width: 100%;
+	max-width: 600px;
+}
+
+/* Multicheck */
+.optiz-wrap .optiz-multicheck-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.optiz-wrap .optiz-multicheck-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+}
+
+/* Buttonset */
+.optiz-wrap .optiz-buttonset {
+	display: inline-flex;
+	border: 1px solid #8c8f94;
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.optiz-wrap .optiz-buttonset-item {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 12px;
+	font-size: 13px;
+	cursor: pointer;
+	background: #f6f7f7;
+	border-right: 1px solid #8c8f94;
+	user-select: none;
+	transition: background-color .15s;
+}
+
+.optiz-wrap .optiz-buttonset-item:last-child {
+	border-right: none;
+}
+
+.optiz-wrap .optiz-buttonset-item input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.optiz-wrap .optiz-buttonset-item:hover {
+	background: #dcdcde;
+}
+
+.optiz-wrap .optiz-buttonset-item.is-active {
+	background: #2271b1;
+	color: #fff;
+}
