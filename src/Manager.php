@@ -174,12 +174,12 @@ class Manager {
 
 		set_transient( 'optiz_notices_' . $this->key, $notice, 30 );
 
-		wp_safe_redirect(
-			add_query_arg(
-				[ 'tab' => isset( $_POST['current_tab'] ) ? sanitize_key( wp_unslash( $_POST['current_tab'] ) ) : '' ],
-				$this->get_page_url()
-			)
-		);
+		$args = [];
+		if ( count( $schema['tabs'] ) > 1 && isset( $_POST['current_tab'] ) ) {
+			$args['tab'] = sanitize_key( wp_unslash( $_POST['current_tab'] ) );
+		}
+
+		wp_safe_redirect( add_query_arg( $args, $this->get_page_url() ) );
 		exit;
 	}
 }
