@@ -23,17 +23,7 @@ class Renderer {
 		echo '<div class="wrap optiz-wrap">';
 		echo '<h1>' . esc_html( $page['title'] ) . '</h1>';
 
-		if ( isset( $_GET['updated'] ) ) {
-			if ( '1' === $_GET['updated'] ) {
-				echo '<div class="notice notice-success is-dismissible"><p>'
-					. esc_html__( 'Settings saved.', 'optiz' )
-					. '</p></div>';
-			} else {
-				echo '<div class="notice notice-error is-dismissible"><p>'
-					. esc_html__( 'Settings could not be saved.', 'optiz' )
-					. '</p></div>';
-			}
-		}
+		settings_errors( 'optiz_' . $key );
 
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		echo '<input type="hidden" name="action" value="' . esc_attr( 'optiz_save_' . $key ) . '">';

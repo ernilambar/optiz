@@ -147,12 +147,19 @@ class Manager {
 		$data   = isset( $_POST[ $option_key ] ) ? wp_unslash( (array) $_POST[ $option_key ] ) : [];
 		$result = $this->save( $data );
 
+		if ( $result ) {
+			add_settings_error( 'optiz_' . $this->key, 'optiz_saved', __( 'Settings saved.', 'optiz' ), 'success' );
+		} else {
+			add_settings_error( 'optiz_' . $this->key, 'optiz_error', __( 'Settings could not be saved.', 'optiz' ), 'error' );
+		}
+
+		set_transient( 'settings_errors', get_settings_errors(), 30 );
+
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'page'    => $schema['page']['menu_slug'],
-					'updated' => $result ? '1' : '0',
-					'tab'     => isset( $_POST['current_tab'] ) ? sanitize_key( wp_unslash( $_POST['current_tab'] ) ) : '',
+					'page' => $schema['page']['menu_slug'],
+					'tab'  => isset( $_POST['current_tab'] ) ? sanitize_key( wp_unslash( $_POST['current_tab'] ) ) : '',
 				],
 				admin_url( 'admin.php' )
 			)
