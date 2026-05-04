@@ -66,11 +66,29 @@
 	max-width: 600px;
 }
 
+/* Radio group */
+.optiz-wrap .optiz-radio-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
 /* Multicheck */
 .optiz-wrap .optiz-multicheck-group {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
+}
+
+/* Horizontal layout for radio and multicheck */
+.optiz-wrap .optiz-radio-group.is-horizontal,
+.optiz-wrap .optiz-multicheck-group.is-horizontal {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 6px 16px;
 }
 
 .optiz-wrap .optiz-multicheck-item {

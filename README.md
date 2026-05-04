@@ -71,18 +71,44 @@ $value = \Nilambar\Optiz\Manager::instance( 'my_plugin' )->get( 'api_key' );
 
 ## Field types
 
-| Type       | Description                        |
-|------------|------------------------------------|
-| `text`     | Single-line text input             |
-| `textarea` | Multi-line text input              |
-| `email`    | Email input                        |
-| `url`      | URL input                          |
-| `number`   | Numeric input                      |
-| `checkbox` | Standard checkbox (boolean)        |
-| `toggle`   | iOS-style toggle switch (boolean)  |
-| `select`   | Dropdown (requires `choices`)      |
-| `radio`    | Radio buttons (requires `choices`) |
-| `color`    | Color picker                       |
+| Type         | Description                                        |
+|--------------|----------------------------------------------------|
+| `text`       | Single-line text input                             |
+| `textarea`   | Multi-line text input                              |
+| `email`      | Email input                                        |
+| `url`        | URL input                                          |
+| `number`     | Numeric input                                      |
+| `password`   | Password input (value not sanitized by default)    |
+| `checkbox`   | Standard checkbox (boolean)                        |
+| `toggle`     | iOS-style toggle switch (boolean)                  |
+| `select`     | Dropdown (requires `choices`)                      |
+| `radio`      | Radio buttons (requires `choices`)                 |
+| `buttonset`  | Button-group selection (requires `choices`)        |
+| `multicheck` | Multiple checkboxes (requires `choices`)           |
+| `color`      | Color picker                                       |
+| `code`       | Code editor (CSS, JS, or plain text)               |
+| `editor`     | WordPress rich-text editor                         |
+
+## Field options
+
+Type-specific options are flat top-level keys on the field array — the same level as `id`, `type`, and `label`.
+
+### `layout` — `radio`, `multicheck`
+
+Controls whether items are stacked or inline. Accepted values: `vertical` (default), `horizontal`.
+
+```php
+[ 'id' => 'alignment', 'type' => 'radio', 'label' => 'Alignment', 'layout' => 'horizontal', 'choices' => [ 'left' => 'Left', 'center' => 'Center', 'right' => 'Right' ] ],
+[ 'id' => 'features',  'type' => 'multicheck', 'label' => 'Features', 'layout' => 'horizontal', 'choices' => [ 'a' => 'Feature A', 'b' => 'Feature B' ] ],
+```
+
+### `mode` — `code`
+
+Sets the syntax highlighting mode. Accepted values: `text` (default), `css`, `js`.
+
+```php
+[ 'id' => 'custom_css', 'type' => 'code', 'label' => 'Custom CSS', 'mode' => 'css' ],
+```
 
 ## Conditional fields
 

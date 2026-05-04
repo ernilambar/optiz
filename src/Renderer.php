@@ -230,12 +230,13 @@ class Renderer {
 
 	private function render_radio_field( array $field, $value, string $option_key ): string {
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
+		$class  = 'optiz-radio-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
 		$inputs = '';
 
 		foreach ( $field['choices'] as $choice_value => $choice_label ) {
 			$id      = 'optiz_' . $field['id'] . '_' . $choice_value;
 			$inputs .= sprintf(
-				'<label><input type="radio" id="%s" name="%s" value="%s"%s> %s</label><br>',
+				'<label><input type="radio" id="%s" name="%s" value="%s"%s> %s</label>',
 				esc_attr( $id ),
 				$name,
 				esc_attr( $choice_value ),
@@ -244,7 +245,7 @@ class Renderer {
 			);
 		}
 
-		return '<fieldset class="optiz-radio-group">' . $inputs . '</fieldset>';
+		return '<fieldset class="' . esc_attr( $class ) . '">' . $inputs . '</fieldset>';
 	}
 
 	private function render_password_field( array $field, $value, string $option_key ): string {
@@ -273,7 +274,8 @@ class Renderer {
 	private function render_multicheck_field( array $field, $value, string $option_key ): string {
 		$value  = is_array( $value ) ? $value : [];
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . '][]';
-		$output = '<div class="optiz-multicheck-group">';
+		$class  = 'optiz-multicheck-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
+		$output = '<div class="' . esc_attr( $class ) . '">';
 
 		foreach ( $field['choices'] as $choice_value => $choice_label ) {
 			$id      = 'optiz_' . $field['id'] . '_' . $choice_value;

@@ -16,6 +16,8 @@ class Parser {
 
 	private const CODE_MODES = [ 'text', 'css', 'js' ];
 
+	private const LAYOUT_TYPES = [ 'radio', 'multicheck' ];
+
 	public function parse( array $raw ) {
 		if ( empty( $raw['option_key'] ) || ! is_string( $raw['option_key'] ) ) {
 			return new \WP_Error( 'missing_option_key', '"option_key" is required and must be a non-empty string.' );
@@ -142,8 +144,13 @@ class Parser {
 		];
 
 		if ( 'code' === $field['type'] ) {
-			$mode                = $field['mode'] ?? 'text';
+			$mode               = $field['mode'] ?? 'text';
 			$normalized['mode'] = in_array( $mode, self::CODE_MODES, true ) ? $mode : 'text';
+		}
+
+		if ( in_array( $field['type'], self::LAYOUT_TYPES, true ) ) {
+			$layout               = $field['layout'] ?? 'vertical';
+			$normalized['layout'] = in_array( $layout, [ 'vertical', 'horizontal' ], true ) ? $layout : 'vertical';
 		}
 
 		return $normalized;

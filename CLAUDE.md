@@ -69,6 +69,9 @@ Manager                  ← orchestrates: WP hooks, get(), save()
           'description', 'attributes', 'choices', // always present (empty defaults)
           'depends_on',                            // always array-of-arrays, never flat
           'sanitize_callback',                     // null or callable
+          // type-specific keys added only for the relevant type:
+          'mode',   // code fields only: 'text' | 'css' | 'js'
+          'layout', // radio and multicheck only: 'vertical' | 'horizontal'
         ],
       ],
     ],
@@ -77,6 +80,10 @@ Manager                  ← orchestrates: WP hooks, get(), save()
 ```
 
 `depends_on` is always normalised to an array of condition arrays: `[['field'=>'x','value'=>'y'], ...]`. A developer-supplied shorthand `['field'=>'x','value'=>'y']` is wrapped automatically.
+
+### Type-specific field options
+
+Type-specific options are flat top-level keys on the field (same level as `id`, `type`, `label`) — not nested under `attributes` or any wrapper. `attributes` is reserved for HTML element attributes only. When normalising a field, `Parser` adds the type-specific key only for the types that use it (e.g. `layout` is never present on a `text` field). Downstream renderers and validators can access these keys directly without null-checking because `Parser` guarantees them for the relevant types.
 
 ### Manager lifecycle
 
