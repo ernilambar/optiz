@@ -98,10 +98,10 @@ class Renderer {
 		$is_display_only = in_array( $field['type'], [ 'heading', 'message' ], true );
 		$wrapper_attrs   = '';
 
-		if ( ! empty( $field['depends_on'] ) ) {
-			$json           = wp_json_encode( $field['depends_on'] );
+		if ( ! empty( $field['conditions'] ) ) {
+			$json           = wp_json_encode( $field['conditions'] );
 			$wrapper_attrs .= ' data-field-id="' . esc_attr( $field['id'] ) . '"';
-			$wrapper_attrs .= ' data-depends-on="' . esc_attr( $json ? $json : '[]' ) . '"';
+			$wrapper_attrs .= ' data-conditions="' . esc_attr( $json ? $json : '[]' ) . '"';
 		}
 
 		$row_class = 'optiz-field-wrap optiz-field-type-' . esc_attr( $field['type'] ) . ' optiz-field-id-' . esc_attr( $field['id'] );

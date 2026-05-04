@@ -32,10 +32,10 @@ class Assets {
 
 		foreach ( $schema['tabs'] as $tab ) {
 			foreach ( $tab['fields'] as $field ) {
-				if ( ! empty( $field['depends_on'] ) ) {
+				if ( ! empty( $field['conditions'] ) ) {
 					$rules[] = [
 						'fieldId'    => $field['id'],
-						'conditions' => $field['depends_on'],
+						'conditions' => $field['conditions'],
 					];
 				}
 

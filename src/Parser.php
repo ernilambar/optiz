@@ -175,7 +175,7 @@ class Parser {
 			'description'       => $field['description'] ?? '',
 			'attributes'        => $attrs,
 			'choices'           => $field['choices'] ?? [],
-			'depends_on'        => $this->normalize_depends_on( $field['depends_on'] ?? [] ),
+			'conditions'        => $this->normalize_conditions( $field['conditions'] ?? [] ),
 			'sanitize_callback' => $field['sanitize_callback'] ?? null,
 			'class'             => $field['class'] ?? '',
 		];
@@ -210,17 +210,17 @@ class Parser {
 		return $normalized;
 	}
 
-	private function normalize_depends_on( $depends_on ): array {
-		if ( empty( $depends_on ) ) {
+	private function normalize_conditions( $conditions ): array {
+		if ( empty( $conditions ) ) {
 			return [];
 		}
 
-		if ( isset( $depends_on['field'] ) ) {
-			return [ $this->normalize_condition( $depends_on ) ];
+		if ( isset( $conditions['field'] ) ) {
+			return [ $this->normalize_condition( $conditions ) ];
 		}
 
 		return array_values(
-			array_map( [ $this, 'normalize_condition' ], $depends_on )
+			array_map( [ $this, 'normalize_condition' ], $conditions )
 		);
 	}
 

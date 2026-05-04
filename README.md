@@ -119,7 +119,7 @@ Show or hide a field based on another field's value:
     'id'         => 'api_endpoint',
     'type'       => 'text',
     'label'      => 'API Endpoint',
-    'depends_on' => [ 'field' => 'enable_feature', 'value' => '1' ],
+    'conditions' => [ 'field' => 'enable_feature', 'value' => '1' ],
 ],
 ```
 

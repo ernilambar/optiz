@@ -7,7 +7,7 @@
 - 15 field types: `text`, `textarea`, `email`, `url`, `number`, `password`, `checkbox`, `toggle`, `select`, `radio`, `buttonset`, `multicheck`, `color`, `code`, `editor`.
 - `layout` option for `radio` and `multicheck` fields (`vertical` | `horizontal`).
 - `mode` option for `code` fields (`text` | `css` | `js`).
-- Conditional field visibility via `depends_on` with chained dependency resolution.
+- Conditional field visibility via `conditions` with chained dependency resolution.
 - Custom sanitizer callbacks via `sanitize_callback` on any field.
 - Tab-based settings page layout.
 - `Manager::get()` with lazy option loading and per-request cache.

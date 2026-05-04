@@ -67,7 +67,7 @@ Manager                  ← orchestrates: WP hooks, get(), save()
         [
           'id', 'type', 'label', 'default',      // always present
           'description', 'attributes', 'choices', // always present (empty defaults)
-          'depends_on',                            // always array-of-arrays, never flat
+          'conditions',                            // always array-of-arrays, never flat
           'sanitize_callback',                     // null or callable
           // type-specific keys added only for the relevant type:
           'mode',   // code fields only: 'text' | 'css' | 'js'
@@ -79,7 +79,7 @@ Manager                  ← orchestrates: WP hooks, get(), save()
 ]
 ```
 
-`depends_on` is always normalised to an array of condition arrays: `[['field'=>'x','value'=>'y'], ...]`. A developer-supplied shorthand `['field'=>'x','value'=>'y']` is wrapped automatically.
+`conditions` is always normalised to an array of condition arrays: `[['field'=>'x','value'=>'y'], ...]`. A developer-supplied shorthand `['field'=>'x','value'=>'y']` is wrapped automatically.
 
 ### Type-specific field options
 
@@ -109,7 +109,7 @@ Both use a hidden input (`value="0"`) immediately before the checkbox input (`va
 
 ### Client-side dependencies (`conditional.js`)
 
-`Assets::enqueue()` builds a `rules` array from all fields that have `depends_on` and passes it to `conditional.js` via `wp_localize_script` as `window.optizConditional.rules`. The JS engine uses a **fixpoint loop** (repeat until no state changes, max 10 iterations) to handle chained dependencies: fields whose source field is itself hidden immediately fail their condition, causing cascading hides regardless of rule order. Fields with `depends_on` get `data-field-id` and `data-depends-on` (JSON) on their `<tr>` wrapper; fields without `depends_on` get neither attribute.
+`Assets::enqueue()` builds a `rules` array from all fields that have `conditions` and passes it to `conditional.js` via `wp_localize_script` as `window.optizConditional.rules`. The JS engine uses a **fixpoint loop** (repeat until no state changes, max 10 iterations) to handle chained dependencies: fields whose source field is itself hidden immediately fail their condition, causing cascading hides regardless of rule order. Fields with `conditions` get `data-field-id` and `data-conditions` (JSON) on their `<tr>` wrapper; fields without `conditions` get neither attribute.
 
 ### Adding a new field type
 
