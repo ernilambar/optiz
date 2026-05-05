@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`nilambar/optiz` is a PHP library (not a standalone plugin) that WordPress plugins bundle to generate admin settings pages from a PHP array schema. Minimum PHP 7.4, no external dependencies beyond WordPress core.
+`ernilambar/optiz` is a PHP library (not a standalone plugin) that WordPress plugins bundle to generate admin settings pages from a PHP array schema. Minimum PHP 7.4, no external dependencies beyond WordPress core.
 
 ## Commands
 
 ```bash
-# Install / regenerate the autoloader after adding a class
+# Install / regenerate the PHP autoloader after adding a class
 composer install
 
 # Syntax-check all PHP source files
@@ -21,9 +21,21 @@ php -r "require 'vendor/autoload.php'; /* stub WP functions, then assert */"
 # Bump the library version (single source of truth: $version in init.php)
 # Edit $version in init.php, then run:
 composer install
+
+# Install JS/CSS dependencies
+pnpm install
+
+# Production build — compiles resources/ → assets/optiz.css + assets/optiz.js
+pnpm build
+
+# Watch mode — rebuilds on every source change
+pnpm dev
+
+# Format JS, CSS, JSON, and CJS files with Prettier
+pnpm format
 ```
 
-There is no build step, no transpiler, and no test runner configured. Tests are written as inline PHP scripts that stub WordPress functions (see the integration test patterns established in previous development sessions).
+There is no test runner configured. Tests are written as inline PHP scripts that stub WordPress functions (see the integration test patterns established in previous development sessions).
 
 ## Architecture
 
@@ -107,23 +119,57 @@ The form POSTs to `admin-post.php` with `action=optiz_save_{key}`. Fields are na
 
 Both use a hidden input (`value="0"`) immediately before the checkbox input (`value="1"`). Validator casts via `(bool)` — PHP treats `"0"` as false and `"1"` as true. Stored and retrieved as PHP booleans. Toggle and checkbox are visually different (iOS switch vs standard input) but identical in storage and logic.
 
-### Client-side dependencies (`conditional.js`)
+### Frontend asset pipeline
 
-`Assets::enqueue()` builds a `rules` array from all fields that have `conditions` and passes it to `conditional.js` via `wp_localize_script` as `window.optizConditional.rules`. The JS engine uses a **fixpoint loop** (repeat until no state changes, max 10 iterations) to handle chained dependencies: fields whose source field is itself hidden immediately fail their condition, causing cascading hides regardless of rule order. Fields with `conditions` get `data-field-id` and `data-conditions` (JSON) on their `<tr>` wrapper; fields without `conditions` get neither attribute.
+Source files live in `resources/` and are never loaded directly by WordPress — only the compiled outputs in `assets/` are enqueued.
+
+```
+resources/css/optiz.css          →  assets/optiz.css
+resources/js/index.js (+ modules) →  assets/optiz.js
+```
+
+**Tooling** (`package.json`):
+- **Vite 8** — bundles JS (IIFE format via Rollup) and drives the PostCSS pipeline
+- **postcss-nested** — Sass-style nesting in source CSS; must run before postcss-preset-env
+- **postcss-preset-env** — polyfills modern CSS features and adds vendor prefixes; reads `browserslist` from `package.json`
+- **browserslist-to-esbuild** — translates the same `browserslist` query into Vite's `build.target` so JS and CSS share the same browser matrix
+- **Prettier** (`@wordpress/prettier-config`) — formats JS, CSS, JSON, and CJS files
+
+Config files: `vite.config.js`, `postcss.config.cjs`. Neither is included in Composer distribution archives (see `.gitattributes`).
+
+**JS modules** (`resources/js/`):
+- `index.js` — entry point; imports the CSS and calls all init functions
+- `conditional.js` — fixpoint-loop visibility engine; reads `window.optizConditional.rules`
+- `buttonset.js` — buttonset active-state toggling
+- `color-picker.js` — initialises `jQuery.fn.wpColorPicker` when present
+- `code-editor.js` — initialises CodeMirror editors; reads `window.optizCodeEditor.{settings,mimeMap}`
+- `image-picker.js` — wires up the WP media frame for image fields
+
+### Client-side dependencies
+
+`Assets::enqueue()` builds a `rules` array from all fields that have `conditions` and passes it to the `optiz` script handle via `wp_localize_script` as `window.optizConditional.rules`. The JS engine uses a **fixpoint loop** (repeat until no state changes, max 10 iterations) to handle chained dependencies: fields whose source field is itself hidden immediately fail their condition, causing cascading hides regardless of rule order. Fields with `conditions` get `data-field-id` and `data-conditions` (JSON) on their `<tr>` wrapper; fields without `conditions` get neither attribute.
+
+Code editor settings are passed as `window.optizCodeEditor.settings` and `window.optizCodeEditor.mimeMap` via a second `wp_localize_script` call on the same `optiz` handle. When color fields are present, `wp-color-picker` is added as a script dependency so it loads before `optiz.js`.
 
 ### Adding a new field type
 
-Four places require changes:
+Five places require changes:
 1. `Parser::FIELD_TYPES` constant — add the type string.
 2. `Validator::apply_sanitizer()` — add a `case` with the sanitizer logic.
 3. `Renderer` — add a private `render_{type}_field(array $field, $value, string $option_key): string` method.
-4. `assets/css/optiz-admin.css` — add styles if the field needs custom UI (scope under `.optiz-wrap`).
+4. `resources/css/optiz.css` — add styles if the field needs custom UI (scope under `.optiz-wrap`, use nesting). Run `pnpm build` after editing.
+5. `resources/js/` — add a module and call its init function from `index.js` if the field needs JS behaviour. Run `pnpm build` after editing.
 
 ## Coding standards
 
+### PHP
 - WordPress coding style: spaces inside parentheses in control structures (`if ( $x )`, not `if($x)`).
-- Tabs for indentation in PHP and CSS; 2-space indentation in JSON (per `.editorconfig`).
+- Tabs for indentation.
 - snake_case for all method and variable names.
 - All HTML output escaped with `esc_html`, `esc_attr`, `esc_url`, or `esc_textarea`. The `$input_html` string passed to `render_field_wrap` is an exception — it is pre-escaped by the calling `render_*_field` method.
 - `Parser::parse()` never throws — it returns `WP_Error`. `Manager::instance()` throws `\RuntimeException` for unregistered keys.
+
+### JS / CSS
+- Formatted by Prettier using `@wordpress/prettier-config`. Run `pnpm format` before committing, or let the editor integrate with the config.
 - All CSS selectors prefixed `.optiz-wrap`. WordPress provides `form-table`, `nav-tab-*`, and `.notice-*` styles; only tab-content visibility and the toggle switch are custom.
+- Source CSS uses `postcss-nested` syntax — nest descendant rules under `.optiz-wrap { }` using `&`.

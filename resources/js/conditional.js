@@ -1,13 +1,18 @@
-( function () {
-	'use strict';
+'use strict';
 
-	if ( typeof optizConditional === 'undefined' || ! optizConditional.rules || ! optizConditional.rules.length ) {
+export function initConditional() {
+	if (
+		typeof optizConditional === 'undefined' ||
+		! optizConditional.rules ||
+		! optizConditional.rules.length
+	) {
 		return;
 	}
 
 	const rules = optizConditional.rules;
 
-	const getFieldWrapper = ( fieldId ) => document.querySelector( '[data-field-id="' + fieldId + '"]' );
+	const getFieldWrapper = ( fieldId ) =>
+		document.querySelector( '[data-field-id="' + fieldId + '"]' );
 
 	const getFieldValue = ( fieldId ) => {
 		const inputs = Array.from( document.querySelectorAll( '[name$="[' + fieldId + ']"]' ) );
@@ -29,20 +34,20 @@
 
 	const conditionMet = ( condition, value ) => {
 		const expected = condition.value;
-		const compare  = condition.compare || '===';
+		const compare = condition.compare || '===';
 
 		if ( typeof expected === 'boolean' ) {
 			const match = Boolean( value ) === expected;
 			return compare === '!==' ? ! match : match;
 		}
 
-		const strValue    = String( value );
+		const strValue = String( value );
 		const strExpected = String( expected );
 		return compare === '!==' ? strValue !== strExpected : strValue === strExpected;
 	};
 
 	const evaluateAll = () => {
-		let changed    = true;
+		let changed = true;
 		let iterations = 0;
 
 		while ( changed && iterations < 10 ) {
@@ -81,4 +86,4 @@
 	} else {
 		init();
 	}
-} )();
+}
