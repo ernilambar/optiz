@@ -302,7 +302,7 @@ class Renderer {
 	private function render_select_field( array $field, $value, string $option_key ): string {
 		$options = '';
 		if ( ! empty( $field['allow_null'] ) ) {
-			$options .= '<option value="">&mdash; ' . esc_html__( 'Select', 'optiz' ) . ' &mdash;</option>';
+			$options .= '<option value="">&mdash; ' . esc_html__( 'Select' ) . ' &mdash;</option>';
 		}
 		foreach ( $field['choices'] as $choice_value => $choice_label ) {
 			$options .= sprintf(
@@ -383,8 +383,8 @@ class Renderer {
 			esc_attr( $field['id'] ),
 			esc_attr( (string) $value )
 		);
-		$output   .= ' <button type="button" class="button optiz-upload-image">' . esc_html__( 'Upload Image', 'optiz' ) . '</button>';
-		$output   .= ' <button type="button" class="button optiz-remove-image"' . ( $has_value ? '' : ' style="display:none"' ) . '>' . esc_html__( 'Remove', 'optiz' ) . '</button>';
+		$output   .= ' <button type="button" class="button optiz-upload-image">' . esc_html__( 'Upload Image' ) . '</button>';
+		$output   .= ' <button type="button" class="button optiz-remove-image"' . ( $has_value ? '' : ' style="display:none"' ) . '>' . esc_html__( 'Remove' ) . '</button>';
 		$output   .= '<div class="optiz-image-preview"' . ( $has_value ? '' : ' style="display:none"' ) . '>';
 		$output   .= '<img src="' . ( $has_value ? esc_url( (string) $value ) : '' ) . '" alt="">';
 		$output   .= '</div>';

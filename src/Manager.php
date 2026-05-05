@@ -176,11 +176,11 @@ class Manager {
 		$notice = $result
 			? [
 				'type'    => 'success',
-				'message' => __( 'Settings saved.', 'optiz' ),
+				'message' => __( 'Settings saved.' ),
 			]
 			: [
 				'type'    => 'error',
-				'message' => __( 'Settings could not be saved.', 'optiz' ),
+				'message' => __( 'Settings save failed.' ),
 			];
 
 		set_transient( 'optiz_notices_' . $this->key, $notice, 30 );
