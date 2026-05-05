@@ -36,7 +36,7 @@ class Renderer {
 		wp_nonce_field( 'optiz_save_' . $key, 'optiz_nonce' );
 
 		if ( count( $tabs ) > 1 ) {
-			$this->render_tabs( $tabs, $active_tab, $page['menu_slug'] );
+			$this->render_tabs( $tabs, $active_tab, $page['menu_slug'], $page['parent_slug'] );
 		}
 
 		foreach ( $tabs as $tab ) {
@@ -52,7 +52,8 @@ class Renderer {
 		echo '</div>';
 	}
 
-	public function render_tabs( array $tabs, string $active_tab, string $menu_slug ): void {
+	public function render_tabs( array $tabs, string $active_tab, string $menu_slug, string $parent_slug = '' ): void {
+		$base = ! empty( $parent_slug ) ? $parent_slug : 'admin.php';
 		echo '<h2 class="nav-tab-wrapper">';
 		foreach ( $tabs as $tab ) {
 			$url   = add_query_arg(
@@ -60,7 +61,7 @@ class Renderer {
 					'page' => $menu_slug,
 					'tab'  => $tab['id'],
 				],
-				admin_url( 'admin.php' )
+				admin_url( $base )
 			);
 			$class = 'nav-tab' . ( $tab['id'] === $active_tab ? ' nav-tab-active' : '' );
 			echo '<a href="' . esc_url( $url ) . '" class="' . esc_attr( $class ) . '">'

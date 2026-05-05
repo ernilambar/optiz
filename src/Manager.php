@@ -18,7 +18,20 @@ class Manager {
 		$this->registry = new Registry();
 	}
 
+	public static function is_registered( string $key ): bool {
+		return isset( self::$instances[ $key ] );
+	}
+
 	public static function register( string $key, array $schema ): self {
+		if ( isset( self::$instances[ $key ] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf( 'Optiz instance "%s" is already registered.', esc_html( $key ) ),
+				'1.0.0'
+			);
+			return self::$instances[ $key ];
+		}
+
 		$parser = new Parser();
 		$parsed = $parser->parse( $schema );
 
@@ -63,15 +76,12 @@ class Manager {
 			return $this->option_cache[ $field_id ];
 		}
 
-		foreach ( $schema['tabs'] as $tab ) {
-			foreach ( $tab['fields'] as $field ) {
-				if ( $field['id'] === $field_id ) {
-					return $field['default'];
-				}
-			}
-		}
+		$defaults = $this->registry->get_defaults();
+		return array_key_exists( $field_id, $defaults ) ? $defaults[ $field_id ] : $fallback;
+	}
 
-		return $fallback;
+	public function clear_cache(): void {
+		$this->option_cache = null;
 	}
 
 	public function save( array $data ): bool {
@@ -85,6 +95,7 @@ class Manager {
 		$clean     = $validator->sanitize( $data, $schema );
 
 		global $wpdb;
+		$wpdb->last_error = '';
 
 		update_option( $schema['option_key'], $clean );
 		$this->option_cache = null;
