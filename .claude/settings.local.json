@@ -5,7 +5,8 @@
       "Bash(php *)",
       "Bash(composer lint *)",
       "Bash(git *)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(grep *)"
     ]
   }
 }
