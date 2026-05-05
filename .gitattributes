@@ -5,6 +5,8 @@
 .phpcs.xml.dist export-ignore
 CLAUDE.md export-ignore
 package.json export-ignore
+.prettierignore export-ignore
+.prettierrc.mjs export-ignore
 pnpm-lock.yaml export-ignore
 postcss.config.cjs export-ignore
 resources export-ignore
