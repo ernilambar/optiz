@@ -1,0 +1,24 @@
+{
+	"name": "optiz",
+	"private": true,
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite build --watch",
+		"format": "prettier \"**/*.{cjs,css,js,json,mjs}\" --write --log-level warn"
+	},
+	"browserslist": "> 1%, last 2 versions, not dead",
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
+	},
+	"devDependencies": {
+		"@wordpress/prettier-config": "^4.45.0",
+		"browserslist-to-esbuild": "^2.1.1",
+		"postcss": "^8.5.14",
+		"postcss-nested": "^7.0.2",
+		"postcss-preset-env": "^11.2.1",
+		"prettier": "npm:wp-prettier@^3.0.3",
+		"vite": "^8.0.10"
+	}
+}

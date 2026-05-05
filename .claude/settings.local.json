@@ -1,12 +1,19 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(composer install *)",
-      "Bash(php *)",
-      "Bash(composer lint *)",
-      "Bash(git *)",
-      "Bash(xargs ls *)",
-      "Bash(grep *)"
-    ]
-  }
+	"permissions": {
+		"allow": [
+			"Bash(composer install *)",
+			"Bash(php *)",
+			"Bash(composer lint *)",
+			"Bash(git *)",
+			"Bash(xargs ls *)",
+			"Bash(grep *)",
+			"Bash(pnpm --version)",
+			"Bash(pnpm install *)",
+			"Bash(pnpm approve-builds *)",
+			"Bash(node_modules/.bin/esbuild *)",
+			"Bash(pnpm build *)",
+			"Bash(pnpm info *)",
+			"Bash(node -e ' *)"
+		]
+	}
 }
