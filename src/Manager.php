@@ -159,7 +159,10 @@ class Manager {
 		}
 
 		$page   = $schema['page'];
-		$parent = ! empty( $page['parent_slug'] ) ? $page['parent_slug'] : 'admin.php';
+		$parent = 'admin.php';
+		if ( ! empty( $page['parent_slug'] ) && '.php' === substr( $page['parent_slug'], -4 ) ) {
+			$parent = $page['parent_slug'];
+		}
 
 		return add_query_arg( [ 'page' => $page['menu_slug'] ], admin_url( $parent ) );
 	}
