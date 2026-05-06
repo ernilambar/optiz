@@ -2,14 +2,15 @@
 
 export function initConditional() {
 	if (
-		typeof optizConditional === 'undefined' ||
-		! optizConditional.rules ||
-		! optizConditional.rules.length
+		typeof window.optiz === 'undefined' ||
+		! window.optiz.conditional ||
+		! window.optiz.conditional.rules ||
+		! window.optiz.conditional.rules.length
 	) {
 		return;
 	}
 
-	const rules = optizConditional.rules;
+	const rules = window.optiz.conditional.rules;
 
 	const getFieldWrapper = ( fieldId ) =>
 		document.querySelector( '[data-field-id="' + fieldId + '"]' );

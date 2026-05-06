@@ -14,7 +14,9 @@
 			"Bash(pnpm build *)",
 			"Bash(pnpm info *)",
 			"Bash(node -e ' *)",
-			"Bash(composer format *)"
+			"Bash(composer format *)",
+			"Bash(composer update *)",
+			"Bash(./vendor/bin/phpunit)"
 		]
 	}
 }

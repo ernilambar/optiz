@@ -2,10 +2,10 @@
 
 export function initCodeEditor() {
 	document.addEventListener( 'DOMContentLoaded', function () {
-		if ( typeof optizCodeEditor === 'undefined' ) return;
+		if ( typeof window.optiz === 'undefined' || ! window.optiz.codeEditor ) return;
 
-		const settings = optizCodeEditor.settings;
-		const mimeMap = optizCodeEditor.mimeMap;
+		const settings = window.optiz.codeEditor.settings;
+		const mimeMap = window.optiz.codeEditor.mimeMap;
 
 		document.querySelectorAll( '.optiz-code-editor' ).forEach( function ( el ) {
 			const mode = mimeMap[ el.dataset.codeType ] || 'text/plain';

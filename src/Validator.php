@@ -18,6 +18,10 @@ class Validator {
 
 	private const DISPLAY_ONLY_TYPES = [ 'heading', 'message' ];
 
+	private const BOOLEAN_TYPES = [ 'checkbox', 'toggle' ];
+
+	private const ARRAY_TYPES = [ 'multicheck' ];
+
 	/**
 	 * Sanitizes all fields defined in the schema.
 	 *
@@ -48,18 +52,56 @@ class Validator {
 	/**
 	 * Sanitizes a single field value.
 	 *
+	 * Calls the developer-supplied sanitize_callback first; if the callback
+	 * returns an unexpected type the built-in sanitizer is used as a fallback
+	 * and _doing_it_wrong() is triggered so the developer is alerted.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param array $field Normalised field definition.
 	 * @param mixed $value Raw value.
 	 * @return mixed Sanitized value.
 	 */
-	private function sanitize_field( array $field, $value ) {
+	private function sanitize_field( array $field, mixed $value ): mixed {
 		if ( null !== $field['sanitize_callback'] && is_callable( $field['sanitize_callback'] ) ) {
-			return call_user_func( $field['sanitize_callback'], $value );
+			$result = call_user_func( $field['sanitize_callback'], $value );
+
+			if ( $this->is_valid_callback_result( $field['type'], $result ) ) {
+				return $result;
+			}
+
+			_doing_it_wrong(
+				'Optiz sanitize_callback',
+				sprintf(
+					'The sanitize_callback for field "%s" returned an unexpected type. Falling back to the built-in sanitizer.',
+					esc_html( $field['id'] )
+				),
+				'1.0.0'
+			);
 		}
 
 		return $this->apply_sanitizer( $field, $value );
+	}
+
+	/**
+	 * Returns whether a sanitize_callback return value is the correct type for the field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $type   Field type.
+	 * @param mixed  $result Value returned by the callback.
+	 * @return bool True when the type matches expectations.
+	 */
+	private function is_valid_callback_result( string $type, mixed $result ): bool {
+		if ( in_array( $type, self::ARRAY_TYPES, true ) ) {
+			return is_array( $result );
+		}
+
+		if ( in_array( $type, self::BOOLEAN_TYPES, true ) ) {
+			return is_bool( $result );
+		}
+
+		return is_scalar( $result ) || null === $result;
 	}
 
 	/**
@@ -71,7 +113,7 @@ class Validator {
 	 * @param mixed $value Raw value.
 	 * @return mixed Sanitized value.
 	 */
-	private function apply_sanitizer( array $field, $value ) {
+	private function apply_sanitizer( array $field, mixed $value ): mixed {
 		switch ( $field['type'] ) {
 			case 'text':
 				return sanitize_text_field( (string) $value );
@@ -87,6 +129,11 @@ class Validator {
 				return esc_url_raw( (string) $value );
 
 			case 'number':
+				$step       = (string) ( $field['attributes']['step'] ?? '1' );
+				$step_float = (float) $step;
+				if ( (float) (int) $step_float !== $step_float ) {
+					return floatval( $value );
+				}
 				return intval( $value );
 
 			case 'checkbox':
@@ -96,8 +143,9 @@ class Validator {
 			case 'select':
 			case 'radio':
 			case 'radio_image':
+			case 'buttonset':
 				$str = (string) $value;
-				return array_key_exists( $str, $field['choices'] ) ? $str : $field['default'];
+				return $this->is_valid_choice( $str, $field['choices'] ) ? $str : (string) $field['default'];
 
 			case 'color':
 				$sanitized = sanitize_hex_color( (string) $value );
@@ -107,6 +155,8 @@ class Validator {
 				return sanitize_text_field( (string) $value );
 
 			case 'password':
+				return sanitize_text_field( (string) $value );
+
 			case 'code':
 				return (string) $value;
 
@@ -114,18 +164,33 @@ class Validator {
 				if ( ! is_array( $value ) ) {
 					return [];
 				}
-				$valid = array_keys( $field['choices'] );
-				return array_values( array_intersect( array_map( 'sanitize_text_field', $value ), $valid ) );
+				$valid     = array_keys( $field['choices'] );
+				$sanitized = array_map( 'sanitize_text_field', $value );
+				return array_values(
+					array_filter( $sanitized, static fn( string $v ) => in_array( $v, $valid, true ) )
+				);
 
 			case 'editor':
 				return wp_kses_post( (string) $value );
 
-			case 'buttonset':
-				$str = (string) $value;
-				return array_key_exists( $str, $field['choices'] ) ? $str : $field['default'];
-
 			default:
 				return sanitize_text_field( (string) $value );
 		}
+	}
+
+	/**
+	 * Returns whether a string value matches one of the valid choice keys.
+	 *
+	 * Choice keys are always strings after Parser normalisation, so a strict
+	 * comparison is safe and intentional.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $value   Submitted value.
+	 * @param array  $choices Normalised choices array.
+	 * @return bool True when the value is a valid choice key.
+	 */
+	private function is_valid_choice( string $value, array $choices ): bool {
+		return in_array( $value, array_keys( $choices ), true );
 	}
 }

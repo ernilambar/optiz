@@ -25,13 +25,14 @@
     "source": "https://github.com/ernilambar/optiz"
   },
   "require": {
-    "php": ">=7.4"
+    "php": ">=8.0"
   },
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "^1",
     "ernilambar/coding-standard": "^1.0",
     "php-parallel-lint/php-parallel-lint": "^1.4",
     "phpcompatibility/php-compatibility": "^10@alpha",
+    "phpunit/phpunit": "^9.6 || ^10 || ^11",
     "slevomat/coding-standard": "^8.22",
     "squizlabs/php_codesniffer": "^3.13",
     "wp-coding-standards/wpcs": "^3.3"
@@ -42,6 +43,11 @@
       "Nilambar\\Optiz\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Nilambar\\Optiz\\Tests\\": "tests/"
+    }
+  },
   "config": {
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true,
@@ -49,7 +55,7 @@
     },
     "optimize-autoloader": true,
     "platform": {
-      "php": "7.4"
+      "php": "8.0"
     },
     "sort-packages": true
   },
@@ -60,6 +66,7 @@
       "@phpcs"
     ],
     "lint:php": "@php ./vendor/bin/parallel-lint -p php --exclude .git --exclude vendor --exclude node_modules .",
-    "phpcs": "@php ./vendor/bin/phpcs --report-full --report-summary ."
+    "phpcs": "@php ./vendor/bin/phpcs --report-full --report-summary .",
+    "test": "@php ./vendor/bin/phpunit"
   }
 }

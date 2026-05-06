@@ -33,6 +33,7 @@ npm-debug.log
 *.diff
 *.err
 *.log
+*.[Cc]ache
 *.map
 *.orig
 *.pyc

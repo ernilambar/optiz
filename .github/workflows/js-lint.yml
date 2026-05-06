@@ -1,0 +1,56 @@
+name: JS Lint
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/js-lint.yml'
+      - 'resources/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.js'
+      - 'postcss.config.cjs'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/js-lint.yml'
+      - 'resources/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.js'
+      - 'postcss.config.cjs'
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  js-lint:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check JS/CSS formatting
+        run: pnpm prettier "**/*.{cjs,css,js,json,mjs}" --check
