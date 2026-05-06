@@ -62,6 +62,7 @@ class Assets {
 
 		if ( $has_color_field ) {
 			wp_enqueue_style( 'wp-color-picker' );
+			$deps[] = 'jquery';
 			$deps[] = 'wp-color-picker';
 		}
 
@@ -84,26 +85,23 @@ class Assets {
 			true
 		);
 
-		wp_localize_script( 'optiz', 'optizConditional', [ 'rules' => $rules ] );
+		$optiz_data = [ 'conditional' => [ 'rules' => $rules ] ];
 
 		if ( $has_code_field ) {
 			$editor_settings = wp_enqueue_code_editor( [ 'type' => 'text/plain' ] );
 
 			if ( false !== $editor_settings ) {
-				$mime_map = [
-					'text' => 'text/plain',
-					'css'  => 'text/css',
-					'js'   => 'text/javascript',
+				$optiz_data['codeEditor'] = [
+					'settings' => $editor_settings,
+					'mimeMap'  => [
+						'text' => 'text/plain',
+						'css'  => 'text/css',
+						'js'   => 'text/javascript',
+					],
 				];
-				wp_localize_script(
-					'optiz',
-					'optizCodeEditor',
-					[
-						'settings' => $editor_settings,
-						'mimeMap'  => $mime_map,
-					]
-				);
 			}
 		}
+
+		wp_add_inline_script( 'optiz', 'window.optiz = ' . wp_json_encode( $optiz_data ) . ';', 'before' );
 	}
 }

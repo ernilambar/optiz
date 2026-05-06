@@ -218,7 +218,7 @@ class Parser {
 			'default'           => $field['default'] ?? ( $is_bool ? false : ( $is_array ? [] : '' ) ),
 			'description'       => $field['description'] ?? '',
 			'attributes'        => $attrs,
-			'choices'           => $field['choices'] ?? [],
+			'choices'           => $this->normalize_choices( $field['choices'] ?? [] ),
 			'conditions'        => $this->normalize_conditions( $field['conditions'] ?? [] ),
 			'sanitize_callback' => $field['sanitize_callback'] ?? null,
 			'class'             => $field['class'] ?? '',
@@ -255,6 +255,22 @@ class Parser {
 	}
 
 	/**
+	 * Normalises a choices array so all keys are strings.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $choices Raw choices array.
+	 * @return array Choices with all keys cast to string.
+	 */
+	private function normalize_choices( array $choices ): array {
+		$normalized = [];
+		foreach ( $choices as $key => $label ) {
+			$normalized[ (string) $key ] = $label;
+		}
+		return $normalized;
+	}
+
+	/**
 	 * Normalises a conditions value to an array of condition arrays.
 	 *
 	 * @since 1.0.0
@@ -262,7 +278,7 @@ class Parser {
 	 * @param mixed $conditions Raw conditions value.
 	 * @return array Normalised conditions.
 	 */
-	private function normalize_conditions( $conditions ): array {
+	private function normalize_conditions( mixed $conditions ): array {
 		if ( empty( $conditions ) ) {
 			return [];
 		}

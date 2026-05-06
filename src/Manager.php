@@ -144,6 +144,18 @@ class Manager {
 	}
 
 	/**
+	 * Clears all registered instances. Only available when OPTIZ_TESTS is defined.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function reset(): void {
+		if ( ! defined( 'OPTIZ_TESTS' ) ) {
+			return;
+		}
+		self::$instances = [];
+	}
+
+	/**
 	 * Returns the saved value for a field, falling back to its schema default then to $fallback.
 	 *
 	 * @since 1.0.0
@@ -152,7 +164,7 @@ class Manager {
 	 * @param mixed  $fallback Value to return when no saved value or default exists.
 	 * @return mixed Field value.
 	 */
-	public function get( string $field_id, $fallback = null ) {
+	public function get( string $field_id, mixed $fallback = null ): mixed {
 		$schema = $this->registry->get_schema();
 
 		if ( empty( $schema ) ) {
