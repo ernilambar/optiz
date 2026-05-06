@@ -26,9 +26,13 @@
 	<!-- PHP version check. -->
 	<config name="testVersion" value="7.4-"/>
 
+	<rule ref="NilambarCodingStandard" />
+
 	<rule ref="WordPress-Core">
 		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
 	</rule>
+
+	<rule ref="WordPress-Docs" />
 
 	<!-- Enforce short arrays. -->
 	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>

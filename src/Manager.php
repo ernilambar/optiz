@@ -1,27 +1,101 @@
 <?php
+/**
+ * Manager class.
+ *
+ * @package Optiz
+ */
+
+declare(strict_types=1);
 
 namespace Nilambar\Optiz;
 
 use RuntimeException;
 
+/**
+ * Orchestrates schema registration, option retrieval, and admin-page lifecycle.
+ *
+ * @since 1.0.0
+ */
 class Manager {
 
+	/**
+	 * Registered Manager instances keyed by plugin key.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var self[]
+	 */
 	private static array $instances = [];
 
+	/**
+	 * Plugin key for this instance.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string
+	 */
 	private string $key;
-	private Registry $registry;
-	private ?array $option_cache = null;
-	private ?string $page_hook   = null;
 
+	/**
+	 * Schema and defaults registry.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var Registry
+	 */
+	private Registry $registry;
+
+	/**
+	 * Cached option values from the database, or null when not yet loaded.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var array|null
+	 */
+	private ?array $option_cache = null;
+
+	/**
+	 * WP admin page hook suffix returned by add_menu_page / add_submenu_page.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var string|null
+	 */
+	private ?string $page_hook = null;
+
+	/**
+	 * Constructor — use register() to create instances.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $key Plugin key.
+	 */
 	private function __construct( string $key ) {
 		$this->key      = $key;
 		$this->registry = new Registry();
 	}
 
+	/**
+	 * Returns whether a Manager instance has been registered for the given key.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $key Plugin key.
+	 * @return bool True if registered.
+	 */
 	public static function is_registered( string $key ): bool {
 		return isset( self::$instances[ $key ] );
 	}
 
+	/**
+	 * Creates and registers a Manager instance for the given key and schema.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $key    Plugin key.
+	 * @param array  $schema Raw developer-supplied schema.
+	 * @return self The registered Manager instance.
+	 */
 	public static function register( string $key, array $schema ): self {
 		if ( isset( self::$instances[ $key ] ) ) {
 			_doing_it_wrong(
@@ -50,6 +124,15 @@ class Manager {
 		return $instance;
 	}
 
+	/**
+	 * Returns the registered Manager instance for the given key.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $key Plugin key.
+	 * @return self The registered Manager instance.
+	 * @throws RuntimeException If no instance is registered for the key.
+	 */
 	public static function instance( string $key ): self {
 		if ( ! isset( self::$instances[ $key ] ) ) {
 			throw new RuntimeException(
@@ -60,6 +143,15 @@ class Manager {
 		return self::$instances[ $key ];
 	}
 
+	/**
+	 * Returns the saved value for a field, falling back to its schema default then to $fallback.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $field_id Field ID.
+	 * @param mixed  $fallback Value to return when no saved value or default exists.
+	 * @return mixed Field value.
+	 */
 	public function get( string $field_id, $fallback = null ) {
 		$schema = $this->registry->get_schema();
 
@@ -80,10 +172,23 @@ class Manager {
 		return array_key_exists( $field_id, $defaults ) ? $defaults[ $field_id ] : $fallback;
 	}
 
+	/**
+	 * Invalidates the in-memory option cache, forcing a fresh DB read on next get().
+	 *
+	 * @since 1.0.0
+	 */
 	public function clear_cache(): void {
 		$this->option_cache = null;
 	}
 
+	/**
+	 * Sanitizes and persists option data to the database.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $data Raw field values keyed by field ID.
+	 * @return bool True on success, false on DB error.
+	 */
 	public function save( array $data ): bool {
 		$schema = $this->registry->get_schema();
 
@@ -106,6 +211,11 @@ class Manager {
 		return empty( $wpdb->last_error );
 	}
 
+	/**
+	 * Registers the admin settings page via add_menu_page or add_submenu_page.
+	 *
+	 * @since 1.0.0
+	 */
 	public function register_page(): void {
 		$schema = $this->registry->get_schema();
 
@@ -116,7 +226,7 @@ class Manager {
 		$page = $schema['page'];
 
 		if ( ! empty( $page['parent_slug'] ) ) {
-			$this->page_hook = add_submenu_page(
+			$hook            = add_submenu_page(
 				$page['parent_slug'],
 				$page['title'],
 				$page['menu_title'],
@@ -124,8 +234,9 @@ class Manager {
 				$page['menu_slug'],
 				[ $this, 'render_page' ]
 			);
+			$this->page_hook = $hook ? $hook : null;
 		} else {
-			$this->page_hook = add_menu_page(
+			$hook            = add_menu_page(
 				$page['title'],
 				$page['menu_title'],
 				$page['capability'],
@@ -134,11 +245,19 @@ class Manager {
 				$page['icon_url'],
 				$page['position']
 			);
+			$this->page_hook = $hook ? $hook : null;
 		}
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
 
+	/**
+	 * Enqueues assets for the settings page; called on admin_enqueue_scripts.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $hook Current admin page hook.
+	 */
 	public function enqueue_assets( string $hook ): void {
 		if ( null === $this->page_hook ) {
 			return;
@@ -147,10 +266,22 @@ class Manager {
 		( new Assets() )->enqueue( $hook, $this->page_hook, $this->registry->get_schema() );
 	}
 
+	/**
+	 * Outputs the HTML for the admin settings page.
+	 *
+	 * @since 1.0.0
+	 */
 	public function render_page(): void {
 		( new Renderer() )->render_page( $this->registry, $this->key );
 	}
 
+	/**
+	 * Returns the full admin URL for the settings page.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return string Admin URL, or empty string if no schema is loaded.
+	 */
 	public function get_page_url(): string {
 		$schema = $this->registry->get_schema();
 
@@ -167,6 +298,11 @@ class Manager {
 		return add_query_arg( [ 'page' => $page['menu_slug'] ], admin_url( $parent ) );
 	}
 
+	/**
+	 * Handles the form POST: verifies nonce, sanitizes, saves, and redirects.
+	 *
+	 * @since 1.0.0
+	 */
 	public function handle_save(): void {
 		$schema     = $this->registry->get_schema();
 		$option_key = $schema['option_key'];

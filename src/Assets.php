@@ -1,18 +1,39 @@
 <?php
+/**
+ * Assets class.
+ *
+ * @package Optiz
+ */
+
+declare(strict_types=1);
 
 namespace Nilambar\Optiz;
 
+/**
+ * Enqueues admin-page CSS, JS, and their localised data.
+ *
+ * @since 1.0.0
+ */
 class Assets {
 
+	/**
+	 * Enqueues styles and scripts for the settings page.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $hook      Current admin page hook.
+	 * @param string $page_hook Registered settings page hook.
+	 * @param array  $schema    Normalised schema.
+	 */
 	public function enqueue( string $hook, string $page_hook, array $schema ): void {
 		if ( $hook !== $page_hook ) {
 			return;
 		}
 
-		$rules               = [];
-		$has_code_field      = false;
-		$has_color_field     = false;
-		$has_image_field     = false;
+		$rules           = [];
+		$has_code_field  = false;
+		$has_color_field = false;
+		$has_image_field = false;
 
 		foreach ( $schema['tabs'] as $tab ) {
 			foreach ( $tab['fields'] as $field ) {
@@ -74,10 +95,14 @@ class Assets {
 					'css'  => 'text/css',
 					'js'   => 'text/javascript',
 				];
-				wp_localize_script( 'optiz', 'optizCodeEditor', [
-					'settings' => $editor_settings,
-					'mimeMap'  => $mime_map,
-				] );
+				wp_localize_script(
+					'optiz',
+					'optizCodeEditor',
+					[
+						'settings' => $editor_settings,
+						'mimeMap'  => $mime_map,
+					]
+				);
 			}
 		}
 	}

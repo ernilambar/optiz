@@ -13,7 +13,8 @@
 			"Bash(node_modules/.bin/esbuild *)",
 			"Bash(pnpm build *)",
 			"Bash(pnpm info *)",
-			"Bash(node -e ' *)"
+			"Bash(node -e ' *)",
+			"Bash(composer format *)"
 		]
 	}
 }

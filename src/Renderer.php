@@ -1,9 +1,29 @@
 <?php
+/**
+ * Renderer class.
+ *
+ * @package Optiz
+ */
+
+declare(strict_types=1);
 
 namespace Nilambar\Optiz;
 
+/**
+ * Generates the HTML output for the admin settings page.
+ *
+ * @since 1.0.0
+ */
 class Renderer {
 
+	/**
+	 * Outputs the full settings page HTML including tabs, form, and notices.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param Registry $registry Registry instance holding the schema.
+	 * @param string   $key      Plugin key.
+	 */
 	public function render_page( Registry $registry, string $key ): void {
 		$schema     = $registry->get_schema();
 		$tabs       = $schema['tabs'];
@@ -52,6 +72,16 @@ class Renderer {
 		echo '</div>';
 	}
 
+	/**
+	 * Outputs the tab navigation bar.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $tabs        Normalised tabs array.
+	 * @param string $active_tab  ID of the currently active tab.
+	 * @param string $menu_slug   Page menu slug used to build tab URLs.
+	 * @param string $parent_slug Parent menu slug, if the page is a submenu.
+	 */
 	public function render_tabs( array $tabs, string $active_tab, string $menu_slug, string $parent_slug = '' ): void {
 		$base = ! empty( $parent_slug ) ? $parent_slug : 'admin.php';
 		echo '<h2 class="nav-tab-wrapper">';
@@ -70,6 +100,15 @@ class Renderer {
 		echo '</h2>';
 	}
 
+	/**
+	 * Outputs the form-table rows for all fields in a tab.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $fields       Normalised fields array.
+	 * @param array  $saved_values Saved option values keyed by field ID.
+	 * @param string $option_key   Option key used for input name attributes.
+	 */
 	public function render_fields( array $fields, array $saved_values, string $option_key ): void {
 		echo '<table class="form-table" role="presentation"><tbody>';
 
@@ -95,6 +134,15 @@ class Renderer {
 		}
 	}
 
+	/**
+	 * Outputs the <tr> wrapper around a field, including label and description.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param string $input_html Pre-escaped input HTML.
+	 * @param string $option_key Option key for hook arguments.
+	 */
 	private function render_field_wrap( array $field, string $input_html, string $option_key ): void {
 		$is_display_only = in_array( $field['type'], [ 'heading', 'message' ], true );
 		$wrapper_attrs   = '';
@@ -144,6 +192,16 @@ class Renderer {
 		echo '</tr>';
 	}
 
+	/**
+	 * Renders a text input field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_text_field( array $field, $value, string $option_key ): string {
 		$class = 'optiz-input regular-text';
 		if ( ! empty( $field['class'] ) ) {
@@ -160,6 +218,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders an email input field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_email_field( array $field, $value, string $option_key ): string {
 		$class = 'optiz-input regular-text';
 		if ( ! empty( $field['class'] ) ) {
@@ -176,6 +244,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a URL input field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_url_field( array $field, $value, string $option_key ): string {
 		$class = 'optiz-input regular-text';
 		if ( ! empty( $field['class'] ) ) {
@@ -192,6 +270,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a number input field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_number_field( array $field, $value, string $option_key ): string {
 		$class = 'optiz-input small-text';
 		if ( ! empty( $field['class'] ) ) {
@@ -208,6 +296,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a password input field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_password_field( array $field, $value, string $option_key ): string {
 		$class = 'optiz-input regular-text';
 		if ( ! empty( $field['class'] ) ) {
@@ -224,6 +322,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a hidden input field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_hidden_field( array $field, $value, string $option_key ): string {
 		return sprintf(
 			'<input type="hidden" name="%s[%s]" value="%s">',
@@ -233,6 +341,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a color picker input field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_color_field( array $field, $value, string $option_key ): string {
 		return sprintf(
 			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input optiz-color-picker"%s>',
@@ -244,6 +362,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a textarea field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_textarea_field( array $field, $value, string $option_key ): string {
 		$class = 'optiz-input large-text';
 		if ( ! empty( $field['class'] ) ) {
@@ -262,6 +390,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a checkbox field with a hidden fallback input.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_checkbox_field( array $field, $value, string $option_key ): string {
 		$name    = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
 		$checked = $value ? ' checked' : '';
@@ -279,6 +417,16 @@ class Renderer {
 		return $output;
 	}
 
+	/**
+	 * Renders an iOS-style toggle switch field with a hidden fallback input.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_toggle_field( array $field, $value, string $option_key ): string {
 		$name    = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
 		$checked = $value ? ' checked' : '';
@@ -299,6 +447,16 @@ class Renderer {
 		return $output;
 	}
 
+	/**
+	 * Renders a select dropdown field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_select_field( array $field, $value, string $option_key ): string {
 		$options = '';
 		if ( ! empty( $field['allow_null'] ) ) {
@@ -329,6 +487,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a radio button group field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_radio_field( array $field, $value, string $option_key ): string {
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
 		$class  = 'optiz-radio-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
@@ -349,6 +517,16 @@ class Renderer {
 		return '<fieldset class="' . esc_attr( $class ) . '">' . $inputs . '</fieldset>';
 	}
 
+	/**
+	 * Renders a radio image picker field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_radio_image_field( array $field, $value, string $option_key ): string {
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
 		$class  = 'optiz-radio-image-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
@@ -373,6 +551,16 @@ class Renderer {
 		return $output;
 	}
 
+	/**
+	 * Renders an image upload field with preview.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value (image URL).
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_image_field( array $field, $value, string $option_key ): string {
 		$has_value = ! empty( $value );
 		$output    = '<div class="optiz-image-field">';
@@ -392,14 +580,44 @@ class Renderer {
 		return $output;
 	}
 
+	/**
+	 * Renders a display-only heading field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Unused.
+	 * @param string $option_key Unused.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_heading_field( array $field, $value, string $option_key ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		return '<h2 class="optiz-heading">' . esc_html( $field['label'] ) . '</h2>';
 	}
 
+	/**
+	 * Renders a display-only message field (content comes from the description).
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Unused.
+	 * @param string $option_key Unused.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_message_field( array $field, $value, string $option_key ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		return '<div class="optiz-message">' . wp_kses_post( $field['description'] ) . '</div>';
 	}
 
+	/**
+	 * Renders a CodeMirror-enhanced code editor field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_code_field( array $field, $value, string $option_key ): string {
 		$class = 'optiz-input optiz-code-editor';
 		if ( ! empty( $field['class'] ) ) {
@@ -419,6 +637,16 @@ class Renderer {
 		);
 	}
 
+	/**
+	 * Renders a multi-checkbox group field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value (array of selected values).
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_multicheck_field( array $field, $value, string $option_key ): string {
 		$value  = is_array( $value ) ? $value : [];
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . '][]';
@@ -442,6 +670,16 @@ class Renderer {
 		return $output;
 	}
 
+	/**
+	 * Renders a TinyMCE / wp_editor field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the textarea_name setting.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_editor_field( array $field, $value, string $option_key ): string {
 		$settings = [
 			'textarea_name' => $option_key . '[' . $field['id'] . ']',
@@ -452,9 +690,19 @@ class Renderer {
 
 		ob_start();
 		wp_editor( wp_kses_post( (string) $value ), 'optiz_' . $field['id'], $settings );
-		return ob_get_clean();
+		return (string) ob_get_clean();
 	}
 
+	/**
+	 * Renders a buttonset (styled radio group) field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value.
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
 	private function render_buttonset_field( array $field, $value, string $option_key ): string {
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
 		$output = '<div class="optiz-buttonset">';
@@ -480,6 +728,11 @@ class Renderer {
 
 	/**
 	 * Builds extra HTML attributes: placeholder (if set on the field) + field attributes array.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $field Normalised field definition.
+	 * @return string Pre-escaped attribute string (leading space included).
 	 */
 	private function build_input_extra( array $field ): string {
 		$output = '';
@@ -490,6 +743,14 @@ class Renderer {
 		return $output;
 	}
 
+	/**
+	 * Converts a key-value attributes array to a pre-escaped HTML attribute string.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $attrs Associative array of attribute name => value.
+	 * @return string Pre-escaped attribute string (leading space included).
+	 */
 	private function build_attrs( array $attrs ): string {
 		$output = '';
 		foreach ( $attrs as $key => $val ) {

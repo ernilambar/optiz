@@ -1,4 +1,11 @@
 <?php
+/**
+ * Entry point.
+ *
+ * @package Optiz
+ */
+
+declare(strict_types=1);
 
 defined( 'ABSPATH' ) || exit;
 
