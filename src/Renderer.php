@@ -117,6 +117,7 @@ class Renderer {
 
 		$hidden_inputs  = '';
 		$field_renderer = new FieldRenderer();
+		$visibility     = Conditions::evaluate( $fields, $saved_values );
 
 		foreach ( $fields as $field ) {
 			$value = array_key_exists( $field['id'], $saved_values ) ? $saved_values[ $field['id'] ] : $field['default'];
@@ -127,7 +128,8 @@ class Renderer {
 			}
 
 			$input_html = $field_renderer->render( $field, $value, $option_key );
-			$this->render_field_wrap( $field, $input_html, $option_key );
+			$is_visible = $visibility[ $field['id'] ] ?? true;
+			$this->render_field_wrap( $field, $input_html, $option_key, $is_visible );
 		}
 
 		echo '</tbody></table>';
@@ -145,8 +147,9 @@ class Renderer {
 	 * @param array  $field      Normalised field definition.
 	 * @param string $input_html Pre-escaped input HTML.
 	 * @param string $option_key Option key for hook arguments.
+	 * @param bool   $is_visible Whether the field should be visible on initial render.
 	 */
-	private function render_field_wrap( array $field, string $input_html, string $option_key ): void {
+	private function render_field_wrap( array $field, string $input_html, string $option_key, bool $is_visible = true ): void {
 		$is_display_only = in_array( $field['type'], [ 'heading', 'message' ], true );
 		$wrapper_attrs   = '';
 
@@ -154,6 +157,10 @@ class Renderer {
 			$json           = wp_json_encode( $field['conditions'] );
 			$wrapper_attrs .= ' data-field-id="' . esc_attr( $field['id'] ) . '"';
 			$wrapper_attrs .= ' data-conditions="' . esc_attr( $json ? $json : '[]' ) . '"';
+		}
+
+		if ( ! $is_visible ) {
+			$wrapper_attrs .= ' style="display:none;"';
 		}
 
 		$row_class = 'optiz-field-wrap optiz-field-type-' . esc_attr( $field['type'] ) . ' optiz-field-id-' . esc_attr( $field['id'] );
