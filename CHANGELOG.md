@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] - 2026-05-04
+## [1.0.0] - 2026-05-06
 
 - Schema-driven settings page registration via `Manager::register()`.
 - Version election mechanism: multiple plugins can each bundle the library; the highest version wins.
