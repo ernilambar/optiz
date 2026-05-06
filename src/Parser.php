@@ -1,9 +1,21 @@
 <?php
+/**
+ * Parser class.
+ *
+ * @package Optiz
+ */
+
+declare(strict_types=1);
 
 namespace Nilambar\Optiz;
 
 use WP_Error;
 
+/**
+ * Validates and normalises a raw developer-supplied schema array.
+ *
+ * @since 1.0.0
+ */
 class Parser {
 
 	private const FIELD_TYPES = [
@@ -47,6 +59,14 @@ class Parser {
 
 	private const SIDE_TEXT_TYPES = [ 'checkbox', 'toggle' ];
 
+	/**
+	 * Parses and normalises a raw schema array.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $raw Raw developer-supplied schema.
+	 * @return array|WP_Error Normalised schema on success, WP_Error on failure.
+	 */
 	public function parse( array $raw ) {
 		if ( empty( $raw['option_key'] ) || ! is_string( $raw['option_key'] ) ) {
 			return new WP_Error( 'missing_option_key', '"option_key" is required and must be a non-empty string.' );
@@ -85,6 +105,14 @@ class Parser {
 		return $schema;
 	}
 
+	/**
+	 * Normalises the page configuration with defaults.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $page Raw page configuration.
+	 * @return array Normalised page configuration.
+	 */
 	private function normalize_page( array $page ): array {
 		return [
 			'title'       => $page['title'],
@@ -97,6 +125,14 @@ class Parser {
 		];
 	}
 
+	/**
+	 * Normalises a single tab definition.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $tab Raw tab definition.
+	 * @return array|WP_Error Normalised tab on success, WP_Error on failure.
+	 */
 	private function normalize_tab( array $tab ) {
 		if ( empty( $tab['id'] ) ) {
 			return new WP_Error( 'missing_tab_id', 'Each tab must include an "id".' );
@@ -132,6 +168,14 @@ class Parser {
 		];
 	}
 
+	/**
+	 * Normalises a single field definition.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $field Raw field definition.
+	 * @return array|WP_Error Normalised field on success, WP_Error on failure.
+	 */
 	private function normalize_field( array $field ) {
 		if ( empty( $field['id'] ) ) {
 			return new WP_Error( 'missing_field_id', 'Each field must include an "id".' );
@@ -210,6 +254,14 @@ class Parser {
 		return $normalized;
 	}
 
+	/**
+	 * Normalises a conditions value to an array of condition arrays.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param mixed $conditions Raw conditions value.
+	 * @return array Normalised conditions.
+	 */
 	private function normalize_conditions( $conditions ): array {
 		if ( empty( $conditions ) ) {
 			return [];
@@ -224,6 +276,14 @@ class Parser {
 		);
 	}
 
+	/**
+	 * Normalises a single condition, supplying defaults for missing keys.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $cond Raw condition array.
+	 * @return array Normalised condition.
+	 */
 	private function normalize_condition( array $cond ): array {
 		$compare = isset( $cond['compare'] ) ? (string) $cond['compare'] : '===';
 		return [

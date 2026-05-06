@@ -1,11 +1,32 @@
 <?php
+/**
+ * Validator class.
+ *
+ * @package Optiz
+ */
+
+declare(strict_types=1);
 
 namespace Nilambar\Optiz;
 
+/**
+ * Sanitizes submitted option values against the normalised schema.
+ *
+ * @since 1.0.0
+ */
 class Validator {
 
 	private const DISPLAY_ONLY_TYPES = [ 'heading', 'message' ];
 
+	/**
+	 * Sanitizes all fields defined in the schema.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $raw    Raw POST data keyed by field ID.
+	 * @param array $schema Normalised schema.
+	 * @return array Sanitized values keyed by field ID.
+	 */
 	public function sanitize( array $raw, array $schema ): array {
 		$clean = [];
 
@@ -24,6 +45,15 @@ class Validator {
 		return $clean;
 	}
 
+	/**
+	 * Sanitizes a single field value.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $field Normalised field definition.
+	 * @param mixed $value Raw value.
+	 * @return mixed Sanitized value.
+	 */
 	private function sanitize_field( array $field, $value ) {
 		if ( null !== $field['sanitize_callback'] && is_callable( $field['sanitize_callback'] ) ) {
 			return call_user_func( $field['sanitize_callback'], $value );
@@ -32,6 +62,15 @@ class Validator {
 		return $this->apply_sanitizer( $field, $value );
 	}
 
+	/**
+	 * Applies the built-in sanitizer for a given field type.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $field Normalised field definition.
+	 * @param mixed $value Raw value.
+	 * @return mixed Sanitized value.
+	 */
 	private function apply_sanitizer( array $field, $value ) {
 		switch ( $field['type'] ) {
 			case 'text':
