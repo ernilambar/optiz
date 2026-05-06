@@ -432,6 +432,32 @@ class FieldRenderer {
 	}
 
 	/**
+	 * Renders a file upload field (any media library file, no preview).
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param mixed  $value      Current field value (file URL).
+	 * @param string $option_key Option key for the input name attribute.
+	 * @return string Pre-escaped HTML.
+	 */
+	private function render_file_field( array $field, mixed $value, string $option_key ): string {
+		$has_value = ! empty( $value );
+		$output    = '<div class="optiz-file-field">';
+		$output   .= sprintf(
+			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input regular-text optiz-file-url">',
+			esc_attr( $field['id'] ),
+			esc_attr( $option_key ),
+			esc_attr( $field['id'] ),
+			esc_attr( (string) $value )
+		);
+		$output   .= ' <button type="button" class="button optiz-upload-file">' . esc_html__( 'Upload File' ) . '</button>';
+		$output   .= ' <button type="button" class="button optiz-remove-file"' . ( $has_value ? '' : ' style="display:none"' ) . '>' . esc_html__( 'Remove' ) . '</button>';
+		$output   .= '</div>';
+		return $output;
+	}
+
+	/**
 	 * Renders a display-only heading field.
 	 *
 	 * @since 1.0.0

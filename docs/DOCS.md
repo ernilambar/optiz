@@ -110,6 +110,7 @@ Type-specific options sit at the top level of the field array — never nested i
 | `multicheck`  | array    | Requires `choices`. Stores an array of selected keys. Supports `layout`.          |
 | `color`       | string   | WP color picker. Sanitized via `sanitize_hex_color()`.                            |
 | `image`       | string   | Image URL with WP media frame. Sanitized via `esc_url_raw()`.                     |
+| `file`        | string   | Any-file URL with WP media frame (no preview). Sanitized via `esc_url_raw()`.     |
 | `code`        | string   | CodeMirror editor. Stored verbatim — no sanitization.                             |
 | `editor`      | string   | TinyMCE (`wp_editor`). Sanitized via `wp_kses_post()`.                            |
 | `heading`     | —        | Display-only. Renders `label` as an `<h2>`. Skipped during save.                  |
@@ -135,7 +136,7 @@ Display-only types (`heading`, `message`) are skipped entirely during sanitizati
 |--------------------------------------|----------------------------------------------------------------------------------|
 | `text`, `textarea`, `password`, `hidden` | `sanitize_text_field()` / `sanitize_textarea_field()`                        |
 | `email`                              | `sanitize_email()`                                                               |
-| `url`, `image`                       | `esc_url_raw()`                                                                  |
+| `url`, `image`, `file`               | `esc_url_raw()`                                                                  |
 | `number`                             | `intval()` when `attributes.step` is integer; otherwise `floatval()`             |
 | `checkbox`, `toggle`                 | Cast to `bool`                                                                   |
 | `select`, `radio`, `radio_image`, `buttonset` | Must match a `choices` key; otherwise falls back to `default`           |

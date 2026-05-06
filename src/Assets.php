@@ -30,9 +30,9 @@ class Assets {
 			return;
 		}
 
-		$rules           = [];
-		$has_code_field  = false;
-		$has_image_field = false;
+		$rules          = [];
+		$has_code_field = false;
+		$has_media      = false;
 
 		foreach ( $schema['tabs'] as $tab ) {
 			foreach ( $tab['fields'] as $field ) {
@@ -48,7 +48,8 @@ class Assets {
 						$has_code_field = true;
 						break;
 					case 'image':
-						$has_image_field = true;
+					case 'file':
+						$has_media = true;
 						break;
 				}
 			}
@@ -56,7 +57,7 @@ class Assets {
 
 		$deps = [];
 
-		if ( $has_image_field ) {
+		if ( $has_media ) {
 			wp_enqueue_media();
 		}
 

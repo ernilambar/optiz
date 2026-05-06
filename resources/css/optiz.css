@@ -155,8 +155,9 @@
 		}
 	}
 
-	/* Image field */
-	& .optiz-image-field {
+	/* Image and file fields */
+	& .optiz-image-field,
+	& .optiz-file-field {
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;

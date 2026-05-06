@@ -35,6 +35,7 @@ class Parser {
 		'editor',
 		'buttonset',
 		'image',
+		'file',
 		'radio_image',
 		'heading',
 		'message',

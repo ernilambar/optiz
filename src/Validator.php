@@ -126,6 +126,7 @@ class Validator {
 
 			case 'url':
 			case 'image':
+			case 'file':
 				return esc_url_raw( (string) $value );
 
 			case 'number':
