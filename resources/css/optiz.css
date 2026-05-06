@@ -1,11 +1,10 @@
-/* CSS custom properties — resolve from WP admin theme colour when available */
-:root {
+.optiz-wrap {
+	/* CSS custom properties — declared here (not :root) so var() resolves
+	   against the body.admin-color-* override from the user's WP scheme. */
 	--optiz-primary: var(--wp-admin-theme-color, #3858e9);
 	--optiz-primary-focus: var(--wp-admin-theme-color-darker-10, #2145e6);
 	--optiz-border: #dcdcde;
-}
 
-.optiz-wrap {
 	/* Tab content visibility */
 	& .optiz-tab-content {
 		display: none;
