@@ -1,7 +1,7 @@
 /* CSS custom properties — resolve from WP admin theme colour when available */
 :root {
-	--optiz-primary: var(--wp-admin-theme-color, #2271b1);
-	--optiz-primary-focus: var(--wp-admin-theme-color-darker-10, #135e96);
+	--optiz-primary: var(--wp-admin-theme-color, #3858e9);
+	--optiz-primary-focus: var(--wp-admin-theme-color-darker-10, #2145e6);
 	--optiz-border: #dcdcde;
 }
 
