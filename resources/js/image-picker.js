@@ -20,12 +20,31 @@ export function initImagePicker() {
 						title: 'Select Image',
 						button: { text: 'Use this image' },
 						multiple: false,
+						library: { type: 'image' },
+						states: [
+							new wp.media.controller.Library( {
+								title: 'Select Image',
+								library: wp.media.query( { type: 'image' } ),
+								multiple: false,
+								date: false,
+								priority: 20,
+								displaySettings: true,
+								displayUserSettings: false,
+							} ),
+						],
 					} );
 					fr.on( 'select', function () {
-						const a = fr.state().get( 'selection' ).first().toJSON();
-						u.value = a.url;
+						const sel = fr.state().get( 'selection' ).first();
+						const a = sel.toJSON();
+						const display = fr.state().display( sel ).toJSON();
+						const size = display.size || 'full';
+						const url =
+							a.sizes && a.sizes[ size ] && a.sizes[ size ].url
+								? a.sizes[ size ].url
+								: a.url;
+						u.value = url;
 						if ( pi ) {
-							pi.src = a.url;
+							pi.src = url;
 						}
 						if ( pv ) {
 							pv.style.display = '';
