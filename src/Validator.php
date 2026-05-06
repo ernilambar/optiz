@@ -131,10 +131,21 @@ class Validator {
 			case 'number':
 				$step       = (string) ( $field['attributes']['step'] ?? '1' );
 				$step_float = (float) $step;
-				if ( (float) (int) $step_float !== $step_float ) {
-					return floatval( $value );
+				$is_float   = (float) (int) $step_float !== $step_float;
+				$numeric    = $is_float ? floatval( $value ) : intval( $value );
+
+				$attrs   = $field['attributes'];
+				$has_min = array_key_exists( 'min', $attrs ) && '' !== $attrs['min'];
+				$has_max = array_key_exists( 'max', $attrs ) && '' !== $attrs['max'];
+
+				if ( $has_min && $numeric < (float) $attrs['min'] ) {
+					return $is_float ? floatval( $field['default'] ) : intval( $field['default'] );
 				}
-				return intval( $value );
+				if ( $has_max && $numeric > (float) $attrs['max'] ) {
+					return $is_float ? floatval( $field['default'] ) : intval( $field['default'] );
+				}
+
+				return $numeric;
 
 			case 'checkbox':
 			case 'toggle':

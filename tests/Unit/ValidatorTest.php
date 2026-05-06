@@ -97,6 +97,76 @@ class ValidatorTest extends TestCase {
 		$this->assertSame( 0.7, $result['opacity'] );
 	}
 
+	public function test_number_field_falls_back_to_default_when_below_min(): void {
+		$schema = $this->make_schema( [
+			[
+				'id'         => 'qty',
+				'type'       => 'number',
+				'label'      => 'Qty',
+				'default'    => 5,
+				'attributes' => [ 'min' => 1, 'max' => 10 ],
+			],
+		] );
+		$result = $this->validator->sanitize( [ 'qty' => '0' ], $schema );
+		$this->assertSame( 5, $result['qty'] );
+	}
+
+	public function test_number_field_falls_back_to_default_when_above_max(): void {
+		$schema = $this->make_schema( [
+			[
+				'id'         => 'qty',
+				'type'       => 'number',
+				'label'      => 'Qty',
+				'default'    => 5,
+				'attributes' => [ 'min' => 1, 'max' => 10 ],
+			],
+		] );
+		$result = $this->validator->sanitize( [ 'qty' => '99' ], $schema );
+		$this->assertSame( 5, $result['qty'] );
+	}
+
+	public function test_number_field_keeps_value_within_range(): void {
+		$schema = $this->make_schema( [
+			[
+				'id'         => 'qty',
+				'type'       => 'number',
+				'label'      => 'Qty',
+				'default'    => 5,
+				'attributes' => [ 'min' => 1, 'max' => 10 ],
+			],
+		] );
+		$result = $this->validator->sanitize( [ 'qty' => '7' ], $schema );
+		$this->assertSame( 7, $result['qty'] );
+	}
+
+	public function test_number_field_range_check_uses_floatval_for_decimal_step(): void {
+		$schema = $this->make_schema( [
+			[
+				'id'         => 'opacity',
+				'type'       => 'number',
+				'label'      => 'Opacity',
+				'default'    => 0.5,
+				'attributes' => [ 'min' => 0, 'max' => 1, 'step' => '0.1' ],
+			],
+		] );
+		$result = $this->validator->sanitize( [ 'opacity' => '2.5' ], $schema );
+		$this->assertSame( 0.5, $result['opacity'] );
+	}
+
+	public function test_number_field_only_min_provided(): void {
+		$schema = $this->make_schema( [
+			[
+				'id'         => 'qty',
+				'type'       => 'number',
+				'label'      => 'Qty',
+				'default'    => 10,
+				'attributes' => [ 'min' => 5 ],
+			],
+		] );
+		$this->assertSame( 10, $this->validator->sanitize( [ 'qty' => '2' ], $schema )['qty'] );
+		$this->assertSame( 100, $this->validator->sanitize( [ 'qty' => '100' ], $schema )['qty'] );
+	}
+
 	// -------------------------------------------------------------------------
 	// Item 2: strict choice-field comparison
 	// -------------------------------------------------------------------------
