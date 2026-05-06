@@ -232,3 +232,9 @@
 		background: #f6f7f7;
 	}
 }
+
+/* Media modal — when an optiz image field opens it, show only the Size
+   setting and hide Alignment / Link To / Custom URL. */
+body.optiz-media-size-only .attachment-display-settings .setting:not([data-setting="size"]) {
+	display: none;
+}

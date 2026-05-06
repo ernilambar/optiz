@@ -33,6 +33,12 @@ export function initImagePicker() {
 							} ),
 						],
 					} );
+					fr.on( 'open', function () {
+						document.body.classList.add( 'optiz-media-size-only' );
+					} );
+					fr.on( 'close', function () {
+						document.body.classList.remove( 'optiz-media-size-only' );
+					} );
 					fr.on( 'select', function () {
 						const sel = fr.state().get( 'selection' ).first();
 						const a = sel.toJSON();
