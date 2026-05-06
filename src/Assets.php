@@ -32,7 +32,6 @@ class Assets {
 
 		$rules           = [];
 		$has_code_field  = false;
-		$has_color_field = false;
 		$has_image_field = false;
 
 		foreach ( $schema['tabs'] as $tab ) {
@@ -48,9 +47,6 @@ class Assets {
 					case 'code':
 						$has_code_field = true;
 						break;
-					case 'color':
-						$has_color_field = true;
-						break;
 					case 'image':
 						$has_image_field = true;
 						break;
@@ -59,12 +55,6 @@ class Assets {
 		}
 
 		$deps = [];
-
-		if ( $has_color_field ) {
-			wp_enqueue_style( 'wp-color-picker' );
-			$deps[] = 'jquery';
-			$deps[] = 'wp-color-picker';
-		}
 
 		if ( $has_image_field ) {
 			wp_enqueue_media();
