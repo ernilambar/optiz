@@ -223,6 +223,9 @@
 	& .optiz-field-type-message td {
 		padding: 20px 10px 20px 0;
 	}
+	& .optiz-field-type-heading .description {
+		font-size: 13px;
+	}
 
 	/* Heading field (display-only) */
 	& .optiz-heading {
