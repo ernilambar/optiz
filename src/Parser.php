@@ -60,6 +60,8 @@ class Parser {
 
 	private const SIDE_TEXT_TYPES = [ 'checkbox', 'toggle' ];
 
+	private const NOTICE_TYPES = [ 'success', 'error', 'warning', 'info' ];
+
 	/**
 	 * Parses and normalises a raw schema array.
 	 *
@@ -250,6 +252,11 @@ class Parser {
 
 		if ( 'select' === $field['type'] ) {
 			$normalized['allow_null'] = ! empty( $field['allow_null'] );
+		}
+
+		if ( 'message' === $field['type'] ) {
+			$notice_type               = isset( $field['notice_type'] ) ? (string) $field['notice_type'] : '';
+			$normalized['notice_type'] = in_array( $notice_type, self::NOTICE_TYPES, true ) ? $notice_type : '';
 		}
 
 		return $normalized;
