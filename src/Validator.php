@@ -176,10 +176,10 @@ class Validator {
 				if ( ! is_array( $value ) ) {
 					return [];
 				}
-				$valid     = array_keys( $field['choices'] );
+				$choices   = $field['choices'];
 				$sanitized = array_map( 'sanitize_text_field', $value );
 				return array_values(
-					array_filter( $sanitized, static fn( string $v ) => in_array( $v, $valid, true ) )
+					array_filter( $sanitized, static fn( string $v ) => array_key_exists( $v, $choices ) )
 				);
 
 			case 'editor':
@@ -193,9 +193,6 @@ class Validator {
 	/**
 	 * Returns whether a string value matches one of the valid choice keys.
 	 *
-	 * Choice keys are always strings after Parser normalisation, so a strict
-	 * comparison is safe and intentional.
-	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $value   Submitted value.
@@ -203,6 +200,6 @@ class Validator {
 	 * @return bool True when the value is a valid choice key.
 	 */
 	private function is_valid_choice( string $value, array $choices ): bool {
-		return in_array( $value, array_keys( $choices ), true );
+		return array_key_exists( $value, $choices );
 	}
 }
