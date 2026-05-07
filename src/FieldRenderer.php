@@ -482,7 +482,11 @@ class FieldRenderer {
 	 * @return string Pre-escaped HTML.
 	 */
 	private function render_message_field( array $field, mixed $value, string $option_key ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-		return '<div class="optiz-message">' . wp_kses_post( $field['description'] ) . '</div>';
+		$class = 'optiz-message';
+		if ( ! empty( $field['notice_type'] ) ) {
+			$class .= ' optiz-message-' . $field['notice_type'];
+		}
+		return '<div class="' . esc_attr( $class ) . '">' . wp_kses_post( $field['description'] ) . '</div>';
 	}
 
 	/**

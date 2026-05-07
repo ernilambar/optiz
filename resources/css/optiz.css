@@ -218,6 +218,12 @@
 		}
 	}
 
+	/* Display-only field row padding (heading & message) */
+	& .optiz-field-type-heading td,
+	& .optiz-field-type-message td {
+		padding: 20px 10px 20px 0;
+	}
+
 	/* Heading field (display-only) */
 	& .optiz-heading {
 		font-size: 1rem;
@@ -231,6 +237,22 @@
 		border-left: 4px solid var(--optiz-primary);
 		padding: 6px 12px;
 		background: #f6f7f7;
+
+		&.optiz-message-success {
+			border-left-color: #00a32a;
+		}
+
+		&.optiz-message-error {
+			border-left-color: #d63638;
+		}
+
+		&.optiz-message-warning {
+			border-left-color: #dba617;
+		}
+
+		&.optiz-message-info {
+			border-left-color: #72aee6;
+		}
 	}
 }
 

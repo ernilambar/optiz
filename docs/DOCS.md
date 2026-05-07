@@ -89,6 +89,7 @@ Type-specific options sit at the top level of the field array — never nested i
 | `layout`      | `radio`, `radio_image`, `multicheck` | `vertical` \| `horizontal`  | `vertical`  | Stacked vs inline arrangement.                           |
 | `mode`        | `code`                           | `text` \| `css` \| `js`         | `text`      | CodeMirror syntax mode.                                  |
 | `allow_null`  | `select`                         | bool                            | `false`     | Adds an empty `— Select —` option.                       |
+| `notice_type` | `message`                        | `success` \| `error` \| `warning` \| `info` | `''`        | Sets the left-border colour based on type.  |
 
 ### Field types
 
@@ -113,8 +114,8 @@ Type-specific options sit at the top level of the field array — never nested i
 | `file`        | string   | Any-file URL with WP media frame (no preview). Sanitized via `esc_url_raw()`.     |
 | `code`        | string   | CodeMirror editor. Stored verbatim — no sanitization.                             |
 | `editor`      | string   | TinyMCE (`wp_editor`). Sanitized via `wp_kses_post()`.                            |
-| `heading`     | —        | Display-only. Renders `label` as an `<h2>`. Skipped during save.                  |
-| `message`     | —        | Display-only. Renders `description` (allows `wp_kses_post` HTML). Skipped during save. |
+| `heading`     | —        | Display-only. Renders `label` as an `<h2>`; `description` (if set) renders below as `<p class="description">`. Skipped during save. |
+| `message`     | —        | Display-only. Renders `description` (allows `wp_kses_post` HTML). Optional `notice_type` styles the left border. Skipped during save. |
 
 ## Sanitization
 
