@@ -226,16 +226,15 @@
 
 	/* Heading field (display-only) */
 	& .optiz-heading {
-		font-size: 1rem;
+		font-size: 1.3em;
 		margin: 4px 0 0;
-		padding-bottom: 8px;
-		border-bottom: 1px solid var(--optiz-border);
+		font-weight: 500;
 	}
 
 	/* Message field (display-only) */
 	& .optiz-message {
 		border-left: 4px solid var(--optiz-primary);
-		padding: 6px 12px;
+		padding: 12px;
 		background: #f6f7f7;
 
 		&.optiz-message-success {
