@@ -20,6 +20,9 @@ project.properties
 nbproject/private/
 tmp/
 
+# AI files
+.claude/
+
 # Environment files
 .env
 
