@@ -145,7 +145,7 @@
 			gap: 6px 16px;
 		}
 
-		&.is-inline {
+		&.is-compact {
 			flex-direction: row;
 			flex-wrap: nowrap;
 			gap: 4px 12px;
@@ -164,7 +164,7 @@
 			gap: 6px 16px;
 		}
 
-		&.is-inline {
+		&.is-compact {
 			flex-direction: row;
 			flex-wrap: nowrap;
 			gap: 4px 12px;
@@ -254,7 +254,7 @@
 			flex-wrap: wrap;
 		}
 
-		&.is-inline {
+		&.is-compact {
 			flex-direction: row;
 			flex-wrap: nowrap;
 			gap: 4px;

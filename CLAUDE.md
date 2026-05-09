@@ -83,7 +83,7 @@ Manager                  ← orchestrates: WP hooks, get(), save()
           'sanitize_callback',                     // null or callable
           // type-specific keys added only for the relevant type:
           'mode',   // code fields only: 'text' | 'css' | 'js'
-          'layout', // radio and multicheck only: 'vertical' | 'horizontal'
+          'layout', // radio and multicheck only: 'vertical' | 'horizontal' | 'compact'
         ],
       ],
     ],

@@ -238,7 +238,7 @@ class Parser {
 
 		if ( in_array( $field['type'], self::LAYOUT_TYPES, true ) ) {
 			$layout               = $field['layout'] ?? 'vertical';
-			$normalized['layout'] = in_array( $layout, [ 'vertical', 'horizontal', 'inline' ], true ) ? $layout : 'vertical';
+			$normalized['layout'] = in_array( $layout, [ 'vertical', 'horizontal', 'compact' ], true ) ? $layout : 'vertical';
 		}
 
 		if ( in_array( $field['type'], self::TEXT_PLACEHOLDER_TYPES, true ) ) {
