@@ -223,25 +223,33 @@ class Validator {
 	 * @return string Sanitized color string.
 	 */
 	private function sanitize_color( array $field, string $value ): string {
-		$value   = trim( $value );
-		$default = (string) $field['default'];
-
-		if ( '' === $value ) {
-			return ! empty( $field['required'] ) ? $default : '';
-		}
-
+		$value  = trim( $value );
 		$format = $field['format'];
 		$alpha  = $field['alpha'];
 
-		$valid = match ( $format ) {
+		$safe_default = $this->is_valid_color_for_format( (string) $field['default'], $format, $alpha )
+			? (string) $field['default']
+			: '';
+
+		if ( '' === $value ) {
+			return $safe_default;
+		}
+
+		return $this->is_valid_color_for_format( $value, $format, $alpha ) ? $value : $safe_default;
+	}
+
+	/** @return bool */
+	private function is_valid_color_for_format( string $value, string $format, bool $alpha ): bool {
+		if ( '' === $value ) {
+			return false;
+		}
+		return match ( $format ) {
 			'hex'  => $this->is_valid_hex_color( $value, $alpha ),
 			'rgb'  => $alpha ? $this->is_valid_rgba_color( $value ) : $this->is_valid_rgb_color( $value ),
 			'rgba' => $this->is_valid_rgba_color( $value ),
 			'hsl'  => $alpha ? $this->is_valid_hsla_color( $value ) : $this->is_valid_hsl_color( $value ),
 			default => false,
 		};
-
-		return $valid ? $value : $default;
 	}
 
 	/**

@@ -275,11 +275,23 @@ class Parser {
 		}
 
 		if ( 'color' === $field['type'] ) {
-			$format               = isset( $field['format'] ) ? (string) $field['format'] : 'hex';
-			$normalized['format'] = in_array( $format, self::COLOR_FORMATS, true ) ? $format : 'hex';
-			$normalized['alpha']  = ! empty( $field['alpha'] ) || 'rgba' === $normalized['format'];
-			$normalized['palette']  = $this->normalize_color_palette( $field['palette'] ?? [] );
-			$normalized['required'] = ! empty( $field['required'] );
+			$format                = isset( $field['format'] ) ? (string) $field['format'] : 'hex';
+			$normalized['format']  = in_array( $format, self::COLOR_FORMATS, true ) ? $format : 'hex';
+			$normalized['alpha']   = ! empty( $field['alpha'] ) || 'rgba' === $normalized['format'];
+			$normalized['palette'] = $this->normalize_color_palette( $field['palette'] ?? [] );
+
+			$default_str = (string) $normalized['default'];
+			if ( '' !== $default_str && ! $this->is_valid_color_value( $default_str, $normalized['format'], $normalized['alpha'] ) ) {
+				return new WP_Error(
+					'invalid_color_default',
+					sprintf(
+						'Field "%s": the default value "%s" does not match the configured color format "%s".',
+						$field['id'],
+						$default_str,
+						$normalized['format']
+					)
+				);
+			}
 		}
 
 		return $normalized;
@@ -303,6 +315,76 @@ class Parser {
 				$palette
 			)
 		);
+	}
+
+	/**
+	 * Returns whether a color string is valid for the given format and alpha setting.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $value  Color string to test.
+	 * @param string $format One of hex, rgb, rgba, hsl.
+	 * @param bool   $alpha  Whether alpha channel is enabled.
+	 * @return bool
+	 */
+	private function is_valid_color_value( string $value, string $format, bool $alpha ): bool {
+		switch ( $format ) {
+			case 'hex':
+				if ( $alpha ) {
+					return (bool) preg_match( '/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $value );
+				}
+				return (bool) preg_match( '/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', $value );
+
+			case 'rgb':
+				if ( $alpha ) {
+					return $this->preg_rgba( $value );
+				}
+				return $this->preg_rgb( $value );
+
+			case 'rgba':
+				return $this->preg_rgba( $value );
+
+			case 'hsl':
+				if ( $alpha ) {
+					return $this->preg_hsla( $value );
+				}
+				return $this->preg_hsl( $value );
+
+			default:
+				return false;
+		}
+	}
+
+	/** @return bool */
+	private function preg_rgb( string $v ): bool {
+		if ( ! preg_match( '/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i', $v, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
+	}
+
+	/** @return bool */
+	private function preg_rgba( string $v ): bool {
+		if ( ! preg_match( '/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $v, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
+	}
+
+	/** @return bool */
+	private function preg_hsl( string $v ): bool {
+		if ( ! preg_match( '/^hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*\)$/i', $v, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 360 && (int) $m[2] <= 100 && (int) $m[3] <= 100;
+	}
+
+	/** @return bool */
+	private function preg_hsla( string $v ): bool {
+		if ( ! preg_match( '/^hsla\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $v, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 360 && (int) $m[2] <= 100 && (int) $m[3] <= 100;
 	}
 
 	/**
