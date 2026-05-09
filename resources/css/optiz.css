@@ -287,6 +287,67 @@
 		}
 	}
 
+	/* Tooltip */
+	& .optiz-tooltip {
+		position: relative;
+		display: inline-block;
+		margin-left: 4px;
+		vertical-align: middle;
+
+		& .optiz-tooltip-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 16px;
+			height: 16px;
+			border-radius: 50%;
+			background: #8c8f94;
+			color: #fff;
+			font-size: 10px;
+			font-weight: 700;
+			font-style: normal;
+			line-height: 1;
+			cursor: help;
+		}
+
+		& .optiz-tooltip-content {
+			position: absolute;
+			bottom: calc(100% + 8px);
+			left: 50%;
+			transform: translateX(-50%);
+			min-width: 140px;
+			max-width: 220px;
+			background: #1d2327;
+			color: #fff;
+			font-size: 12px;
+			font-weight: 400;
+			line-height: 1.5;
+			padding: 6px 10px;
+			border-radius: 3px;
+			white-space: normal;
+			z-index: 9999;
+			visibility: hidden;
+			opacity: 0;
+			transition: opacity 0.15s;
+			pointer-events: none;
+
+			&::after {
+				content: "";
+				position: absolute;
+				top: 100%;
+				left: 50%;
+				transform: translateX(-50%);
+				border: 5px solid transparent;
+				border-top-color: #1d2327;
+			}
+		}
+
+		&:hover .optiz-tooltip-content {
+			visibility: visible;
+			opacity: 1;
+		}
+	}
+
 	/* Display-only field row padding (heading & message) */
 	& .optiz-field-type-heading td,
 	& .optiz-field-type-message td {

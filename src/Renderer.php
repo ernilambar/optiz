@@ -187,7 +187,15 @@ class Renderer {
 			? ' for="optiz_' . esc_attr( $field['id'] ) . '"'
 			: '';
 
-		echo '<th scope="row"><label' . $label_for . '>' . esc_html( $field['label'] ) . '</label></th>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $label_for is built from esc_attr()
+		$tooltip_html = '';
+		if ( ! empty( $field['tooltip'] ) ) {
+			$tooltip_html = ' <span class="optiz-tooltip">'
+				. '<span class="optiz-tooltip-icon" aria-hidden="true">?</span>'
+				. '<span class="optiz-tooltip-content" role="tooltip">' . esc_html( $field['tooltip'] ) . '</span>'
+				. '</span>';
+		}
+
+		echo '<th scope="row"><label' . $label_for . '>' . esc_html( $field['label'] ) . '</label>' . $tooltip_html . '</th>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $label_for and $tooltip_html are built from esc_attr()/esc_html()
 		echo '<td>';
 		do_action( 'optiz_before_field', $field, $option_key );
 		do_action( 'optiz_before_field_' . $option_key . '_' . $field['id'], $field, $option_key );

@@ -226,6 +226,7 @@ class Parser {
 			'label'             => $field['label'] ?? '',
 			'default'           => $field['default'] ?? ( $is_bool ? false : ( $is_array ? [] : '' ) ),
 			'description'       => $field['description'] ?? '',
+			'tooltip'           => $field['tooltip'] ?? '',
 			'attributes'        => $attrs,
 			'choices'           => $this->normalize_choices( $field['choices'] ?? [] ),
 			'conditions'        => $this->normalize_conditions( $field['conditions'] ?? [] ),
