@@ -202,12 +202,20 @@ class FieldRenderer {
 	 * @return string Pre-escaped HTML.
 	 */
 	private function render_color_field( array $field, mixed $value, string $option_key ): string {
+		$data_attrs  = ' data-format="' . esc_attr( $field['format'] ) . '"';
+		$data_attrs .= ' data-alpha="' . ( $field['alpha'] ? '1' : '0' ) . '"';
+		if ( ! empty( $field['palette'] ) ) {
+			$palette_json = wp_json_encode( $field['palette'] );
+			$data_attrs  .= ' data-palette="' . esc_attr( $palette_json ? $palette_json : '[]' ) . '"';
+		}
+
 		return sprintf(
-			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input optiz-color-picker"%s>',
+			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="optiz-input optiz-color-picker"%s%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
 			esc_attr( $field['id'] ),
 			esc_attr( (string) $value ),
+			$data_attrs,
 			$this->build_attrs( $field['attributes'] )
 		);
 	}

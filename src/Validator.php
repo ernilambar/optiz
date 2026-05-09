@@ -168,8 +168,7 @@ class Validator {
 				return $this->is_valid_choice( $str, $field['choices'] ) ? $str : (string) $field['default'];
 
 			case 'color':
-				$sanitized = sanitize_hex_color( (string) $value );
-				return null !== $sanitized ? $sanitized : (string) $field['default'];
+				return $this->sanitize_color( $field, (string) $value );
 
 			case 'hidden':
 				return sanitize_text_field( (string) $value );
@@ -209,5 +208,83 @@ class Validator {
 	 */
 	private function is_valid_choice( string $value, array $choices ): bool {
 		return array_key_exists( $value, $choices );
+	}
+
+	/**
+	 * Sanitizes a color field value against its configured format.
+	 *
+	 * Empty values are allowed when required is false; invalid non-empty values
+	 * always fall back to the field default.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field Normalised color field definition.
+	 * @param string $value Raw submitted value.
+	 * @return string Sanitized color string.
+	 */
+	private function sanitize_color( array $field, string $value ): string {
+		$value   = trim( $value );
+		$default = (string) $field['default'];
+
+		if ( '' === $value ) {
+			return ! empty( $field['required'] ) ? $default : '';
+		}
+
+		$format = $field['format'];
+		$alpha  = $field['alpha'];
+
+		$valid = match ( $format ) {
+			'hex'  => $this->is_valid_hex_color( $value, $alpha ),
+			'rgb'  => $alpha ? $this->is_valid_rgba_color( $value ) : $this->is_valid_rgb_color( $value ),
+			'rgba' => $this->is_valid_rgba_color( $value ),
+			'hsl'  => $alpha ? $this->is_valid_hsla_color( $value ) : $this->is_valid_hsl_color( $value ),
+			default => false,
+		};
+
+		return $valid ? $value : $default;
+	}
+
+	/**
+	 * @param string $value Color string to test.
+	 * @param bool   $alpha Whether 4- and 8-digit hex (with alpha channel) are allowed.
+	 * @return bool
+	 */
+	private function is_valid_hex_color( string $value, bool $alpha ): bool {
+		if ( $alpha ) {
+			return (bool) preg_match( '/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $value );
+		}
+		return null !== sanitize_hex_color( $value );
+	}
+
+	/** @return bool */
+	private function is_valid_rgb_color( string $value ): bool {
+		if ( ! preg_match( '/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i', $value, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
+	}
+
+	/** @return bool */
+	private function is_valid_rgba_color( string $value ): bool {
+		if ( ! preg_match( '/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $value, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
+	}
+
+	/** @return bool */
+	private function is_valid_hsl_color( string $value ): bool {
+		if ( ! preg_match( '/^hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*\)$/i', $value, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 360 && (int) $m[2] <= 100 && (int) $m[3] <= 100;
+	}
+
+	/** @return bool */
+	private function is_valid_hsla_color( string $value ): bool {
+		if ( ! preg_match( '/^hsla\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $value, $m ) ) {
+			return false;
+		}
+		return (int) $m[1] <= 360 && (int) $m[2] <= 100 && (int) $m[3] <= 100;
 	}
 }

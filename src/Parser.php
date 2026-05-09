@@ -66,6 +66,8 @@ class Parser {
 
 	private const AFFIX_TYPES = [ 'text', 'email', 'url', 'number', 'password' ];
 
+	private const COLOR_FORMATS = [ 'hex', 'rgb', 'rgba', 'hsl' ];
+
 	/**
 	 * Parses and normalises a raw schema array.
 	 *
@@ -272,7 +274,35 @@ class Parser {
 			$normalized['notice_type'] = in_array( $notice_type, self::NOTICE_TYPES, true ) ? $notice_type : '';
 		}
 
+		if ( 'color' === $field['type'] ) {
+			$format               = isset( $field['format'] ) ? (string) $field['format'] : 'hex';
+			$normalized['format'] = in_array( $format, self::COLOR_FORMATS, true ) ? $format : 'hex';
+			$normalized['alpha']  = ! empty( $field['alpha'] ) || 'rgba' === $normalized['format'];
+			$normalized['palette']  = $this->normalize_color_palette( $field['palette'] ?? [] );
+			$normalized['required'] = ! empty( $field['required'] );
+		}
+
 		return $normalized;
+	}
+
+	/**
+	 * Normalises the palette option for a color field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param mixed $palette Raw palette value.
+	 * @return array Sanitized array of palette color strings.
+	 */
+	private function normalize_color_palette( mixed $palette ): array {
+		if ( ! is_array( $palette ) ) {
+			return [];
+		}
+		return array_values(
+			array_map(
+				static fn( $c ) => sanitize_text_field( (string) $c ),
+				$palette
+			)
+		);
 	}
 
 	/**
