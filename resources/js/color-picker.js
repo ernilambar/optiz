@@ -9,16 +9,15 @@ export function initColorPicker() {
 		if ( ! pickers.length ) return;
 
 		Coloris.init();
-		Coloris( { el: '.optiz-color-picker', themeMode: 'auto' } );
+		Coloris( { el: '.optiz-color-picker', themeMode: 'auto', format: 'hex', alpha: false } );
 
 		pickers.forEach( function ( el ) {
 			const format = el.dataset.format || 'hex';
 			const alpha = el.dataset.alpha === '1';
 			const paletteRaw = el.dataset.palette;
 
-			const config = {
-				instance: '#' + el.id,
-				// Coloris uses 'rgb' format for both rgb and rgba; alpha flag controls opacity.
+			// Coloris uses 'rgb' format for both rgb and rgba; alpha flag controls opacity.
+			const instanceConfig = {
 				format: format === 'rgba' ? 'rgb' : format,
 				alpha,
 			};
@@ -27,12 +26,12 @@ export function initColorPicker() {
 				try {
 					const swatches = JSON.parse( paletteRaw );
 					if ( swatches.length ) {
-						config.swatches = swatches;
+						instanceConfig.swatches = swatches;
 					}
 				} catch ( _e ) {}
 			}
 
-			Coloris( config );
+			Coloris.setInstance( '#' + el.id, instanceConfig );
 		} );
 	} );
 }
