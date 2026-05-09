@@ -356,7 +356,14 @@ class Parser {
 		}
 	}
 
-	/** @return bool */
+	/**
+	 * Tests whether a string matches the rgb() color pattern.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $v Color string to test.
+	 * @return bool
+	 */
 	private function preg_rgb( string $v ): bool {
 		if ( ! preg_match( '/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i', $v, $m ) ) {
 			return false;
@@ -364,7 +371,14 @@ class Parser {
 		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
 	}
 
-	/** @return bool */
+	/**
+	 * Tests whether a string matches the rgba() color pattern.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $v Color string to test.
+	 * @return bool
+	 */
 	private function preg_rgba( string $v ): bool {
 		if ( ! preg_match( '/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $v, $m ) ) {
 			return false;
@@ -372,7 +386,14 @@ class Parser {
 		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
 	}
 
-	/** @return bool */
+	/**
+	 * Tests whether a string matches the hsl() color pattern.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $v Color string to test.
+	 * @return bool
+	 */
 	private function preg_hsl( string $v ): bool {
 		if ( ! preg_match( '/^hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*\)$/i', $v, $m ) ) {
 			return false;
@@ -380,7 +401,14 @@ class Parser {
 		return (int) $m[1] <= 360 && (int) $m[2] <= 100 && (int) $m[3] <= 100;
 	}
 
-	/** @return bool */
+	/**
+	 * Tests whether a string matches the hsla() color pattern.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $v Color string to test.
+	 * @return bool
+	 */
 	private function preg_hsla( string $v ): bool {
 		if ( ! preg_match( '/^hsla\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $v, $m ) ) {
 			return false;

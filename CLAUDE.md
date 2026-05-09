@@ -160,6 +160,13 @@ Five places require changes:
 4. `resources/css/optiz.css` — add styles if the field needs custom UI (scope under `.optiz-wrap`, use nesting). Run `pnpm build` after editing.
 5. `resources/js/` — add a module and call its init function from `index.js` if the field needs JS behaviour. Run `pnpm build` after editing.
 
+## Definition of done
+
+Before marking any task complete:
+- Run `composer lint` and ensure it exits with no errors. Every new or modified PHP method must have a complete docblock: a short description, `@since 1.0.0`, and `@param` tags for every parameter.
+- Run `pnpm build` to bundle the assets.
+- Run `pnpm format` to auto-format files with Prettier.
+
 ## Coding standards
 
 ### PHP

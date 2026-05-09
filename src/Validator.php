@@ -238,7 +238,16 @@ class Validator {
 		return $this->is_valid_color_for_format( $value, $format, $alpha ) ? $value : $safe_default;
 	}
 
-	/** @return bool */
+	/**
+	 * Checks whether a color value is valid for a given format.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $value  Color string to test.
+	 * @param string $format Color format: 'hex', 'rgb', or 'hsl'.
+	 * @param bool   $alpha  Whether alpha channel variants are allowed.
+	 * @return bool
+	 */
 	private function is_valid_color_for_format( string $value, string $format, bool $alpha ): bool {
 		if ( '' === $value ) {
 			return false;
@@ -253,6 +262,10 @@ class Validator {
 	}
 
 	/**
+	 * Checks whether a value is a valid hex color.
+	 *
+	 * @since 1.0.0
+	 *
 	 * @param string $value Color string to test.
 	 * @param bool   $alpha Whether 4- and 8-digit hex (with alpha channel) are allowed.
 	 * @return bool
@@ -264,7 +277,14 @@ class Validator {
 		return null !== sanitize_hex_color( $value );
 	}
 
-	/** @return bool */
+	/**
+	 * Checks whether a value is a valid rgb() color.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $value Color string to test.
+	 * @return bool
+	 */
 	private function is_valid_rgb_color( string $value ): bool {
 		if ( ! preg_match( '/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i', $value, $m ) ) {
 			return false;
@@ -272,7 +292,14 @@ class Validator {
 		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
 	}
 
-	/** @return bool */
+	/**
+	 * Checks whether a value is a valid rgba() color.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $value Color string to test.
+	 * @return bool
+	 */
 	private function is_valid_rgba_color( string $value ): bool {
 		if ( ! preg_match( '/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $value, $m ) ) {
 			return false;
@@ -280,7 +307,14 @@ class Validator {
 		return (int) $m[1] <= 255 && (int) $m[2] <= 255 && (int) $m[3] <= 255;
 	}
 
-	/** @return bool */
+	/**
+	 * Checks whether a value is a valid hsl() color.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $value Color string to test.
+	 * @return bool
+	 */
 	private function is_valid_hsl_color( string $value ): bool {
 		if ( ! preg_match( '/^hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*\)$/i', $value, $m ) ) {
 			return false;
@@ -288,7 +322,14 @@ class Validator {
 		return (int) $m[1] <= 360 && (int) $m[2] <= 100 && (int) $m[3] <= 100;
 	}
 
-	/** @return bool */
+	/**
+	 * Checks whether a value is a valid hsla() color.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $value Color string to test.
+	 * @return bool
+	 */
 	private function is_valid_hsla_color( string $value ): bool {
 		if ( ! preg_match( '/^hsla\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*,\s*(0|0?\.\d+|1(?:\.0+)?)\s*\)$/i', $value, $m ) ) {
 			return false;
