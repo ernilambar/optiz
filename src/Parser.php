@@ -62,6 +62,10 @@ class Parser {
 
 	private const NOTICE_TYPES = [ 'success', 'error', 'warning', 'info' ];
 
+	private const READONLY_TYPES = [ 'text', 'email', 'url', 'number', 'password', 'textarea', 'code' ];
+
+	private const AFFIX_TYPES = [ 'text', 'email', 'url', 'number', 'password' ];
+
 	/**
 	 * Parses and normalises a raw schema array.
 	 *
@@ -234,11 +238,20 @@ class Parser {
 
 		if ( in_array( $field['type'], self::LAYOUT_TYPES, true ) ) {
 			$layout               = $field['layout'] ?? 'vertical';
-			$normalized['layout'] = in_array( $layout, [ 'vertical', 'horizontal' ], true ) ? $layout : 'vertical';
+			$normalized['layout'] = in_array( $layout, [ 'vertical', 'horizontal', 'inline' ], true ) ? $layout : 'vertical';
 		}
 
 		if ( in_array( $field['type'], self::TEXT_PLACEHOLDER_TYPES, true ) ) {
 			$normalized['placeholder'] = $field['placeholder'] ?? '';
+		}
+
+		if ( in_array( $field['type'], self::READONLY_TYPES, true ) ) {
+			$normalized['readonly'] = ! empty( $field['readonly'] );
+		}
+
+		if ( in_array( $field['type'], self::AFFIX_TYPES, true ) ) {
+			$normalized['prefix'] = isset( $field['prefix'] ) ? (string) $field['prefix'] : '';
+			$normalized['suffix'] = isset( $field['suffix'] ) ? (string) $field['suffix'] : '';
 		}
 
 		if ( in_array( $field['type'], self::ROWS_TYPES, true ) ) {

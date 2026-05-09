@@ -52,7 +52,7 @@ class FieldRenderer {
 		if ( ! empty( $field['class'] ) ) {
 			$class .= ' ' . $field['class'];
 		}
-		return sprintf(
+		$input = sprintf(
 			'<input type="text" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
@@ -61,6 +61,7 @@ class FieldRenderer {
 			esc_attr( $class ),
 			$this->build_input_extra( $field )
 		);
+		return $this->wrap_with_affix( $field, $input );
 	}
 
 	/**
@@ -78,7 +79,7 @@ class FieldRenderer {
 		if ( ! empty( $field['class'] ) ) {
 			$class .= ' ' . $field['class'];
 		}
-		return sprintf(
+		$input = sprintf(
 			'<input type="email" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
@@ -87,6 +88,7 @@ class FieldRenderer {
 			esc_attr( $class ),
 			$this->build_input_extra( $field )
 		);
+		return $this->wrap_with_affix( $field, $input );
 	}
 
 	/**
@@ -104,7 +106,7 @@ class FieldRenderer {
 		if ( ! empty( $field['class'] ) ) {
 			$class .= ' ' . $field['class'];
 		}
-		return sprintf(
+		$input = sprintf(
 			'<input type="url" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
@@ -113,6 +115,7 @@ class FieldRenderer {
 			esc_attr( $class ),
 			$this->build_input_extra( $field )
 		);
+		return $this->wrap_with_affix( $field, $input );
 	}
 
 	/**
@@ -130,7 +133,7 @@ class FieldRenderer {
 		if ( ! empty( $field['class'] ) ) {
 			$class .= ' ' . $field['class'];
 		}
-		return sprintf(
+		$input = sprintf(
 			'<input type="number" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
@@ -139,6 +142,7 @@ class FieldRenderer {
 			esc_attr( $class ),
 			$this->build_input_extra( $field )
 		);
+		return $this->wrap_with_affix( $field, $input );
 	}
 
 	/**
@@ -156,7 +160,7 @@ class FieldRenderer {
 		if ( ! empty( $field['class'] ) ) {
 			$class .= ' ' . $field['class'];
 		}
-		return sprintf(
+		$input = sprintf(
 			'<input type="password" id="optiz_%s" name="%s[%s]" value="%s" class="%s"%s>',
 			esc_attr( $field['id'] ),
 			esc_attr( $option_key ),
@@ -165,6 +169,7 @@ class FieldRenderer {
 			esc_attr( $class ),
 			$this->build_input_extra( $field )
 		);
+		return $this->wrap_with_affix( $field, $input );
 	}
 
 	/**
@@ -350,7 +355,7 @@ class FieldRenderer {
 	 */
 	private function render_radio_field( array $field, mixed $value, string $option_key ): string {
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
-		$class  = 'optiz-radio-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
+		$class  = 'optiz-radio-group is-' . $field['layout'];
 		$inputs = '';
 
 		foreach ( $field['choices'] as $choice_value => $choice_label ) {
@@ -380,7 +385,7 @@ class FieldRenderer {
 	 */
 	private function render_radio_image_field( array $field, mixed $value, string $option_key ): string {
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . ']';
-		$class  = 'optiz-radio-image-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
+		$class  = 'optiz-radio-image-group is-' . $field['layout'];
 		$output = '<ul class="' . esc_attr( $class ) . '">';
 
 		foreach ( $field['choices'] as $choice_value => $image_url ) {
@@ -531,7 +536,7 @@ class FieldRenderer {
 	private function render_multicheck_field( array $field, mixed $value, string $option_key ): string {
 		$value  = is_array( $value ) ? $value : [];
 		$name   = esc_attr( $option_key ) . '[' . esc_attr( $field['id'] ) . '][]';
-		$class  = 'optiz-multicheck-group' . ( 'horizontal' === $field['layout'] ? ' is-horizontal' : '' );
+		$class  = 'optiz-multicheck-group is-' . $field['layout'];
 		$output = '<div class="' . esc_attr( $class ) . '">';
 
 		foreach ( $field['choices'] as $choice_value => $choice_label ) {
@@ -608,7 +613,7 @@ class FieldRenderer {
 	}
 
 	/**
-	 * Builds extra HTML attributes: placeholder (if set on the field) + field attributes array.
+	 * Builds extra HTML attributes: placeholder, readonly, and field attributes array.
 	 *
 	 * @since 1.0.0
 	 *
@@ -620,7 +625,39 @@ class FieldRenderer {
 		if ( isset( $field['placeholder'] ) && '' !== $field['placeholder'] ) {
 			$output .= ' placeholder="' . esc_attr( $field['placeholder'] ) . '"';
 		}
+		if ( ! empty( $field['readonly'] ) ) {
+			$output .= ' readonly';
+		}
 		$output .= $this->build_attrs( $field['attributes'] );
+		return $output;
+	}
+
+	/**
+	 * Wraps an input HTML string with prefix/suffix spans when set on the field.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array  $field      Normalised field definition.
+	 * @param string $input_html Pre-escaped input HTML.
+	 * @return string Pre-escaped HTML, wrapped if a prefix or suffix is present.
+	 */
+	private function wrap_with_affix( array $field, string $input_html ): string {
+		$prefix = $field['prefix'] ?? '';
+		$suffix = $field['suffix'] ?? '';
+
+		if ( '' === $prefix && '' === $suffix ) {
+			return $input_html;
+		}
+
+		$output = '<span class="optiz-affix-wrap">';
+		if ( '' !== $prefix ) {
+			$output .= '<span class="optiz-affix optiz-affix-prefix">' . esc_html( $prefix ) . '</span>';
+		}
+		$output .= $input_html;
+		if ( '' !== $suffix ) {
+			$output .= '<span class="optiz-affix optiz-affix-suffix">' . esc_html( $suffix ) . '</span>';
+		}
+		$output .= '</span>';
 		return $output;
 	}
 

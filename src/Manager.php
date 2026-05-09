@@ -208,8 +208,13 @@ class Manager {
 			return false;
 		}
 
+		$existing = get_option( $schema['option_key'], [] );
+		if ( ! is_array( $existing ) ) {
+			$existing = [];
+		}
+
 		$validator = new Validator();
-		$clean     = $validator->sanitize( $data, $schema );
+		$clean     = $validator->sanitize( $data, $schema, $existing );
 
 		global $wpdb;
 		$wpdb->last_error = '';

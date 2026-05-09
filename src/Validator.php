@@ -27,11 +27,13 @@ class Validator {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $raw    Raw POST data keyed by field ID.
-	 * @param array $schema Normalised schema.
+	 * @param array $raw      Raw POST data keyed by field ID.
+	 * @param array $schema   Normalised schema.
+	 * @param array $existing Previously saved values keyed by field ID. Used to
+	 *                        preserve readonly fields against form tampering.
 	 * @return array Sanitized values keyed by field ID.
 	 */
-	public function sanitize( array $raw, array $schema ): array {
+	public function sanitize( array $raw, array $schema, array $existing = [] ): array {
 		$clean = [];
 
 		foreach ( $schema['tabs'] as $tab ) {
@@ -40,7 +42,13 @@ class Validator {
 					continue;
 				}
 
-				$id           = $field['id'];
+				$id = $field['id'];
+
+				if ( ! empty( $field['readonly'] ) ) {
+					$clean[ $id ] = array_key_exists( $id, $existing ) ? $existing[ $id ] : $field['default'];
+					continue;
+				}
+
 				$value        = $raw[ $id ] ?? null;
 				$clean[ $id ] = $this->sanitize_field( $field, $value );
 			}
