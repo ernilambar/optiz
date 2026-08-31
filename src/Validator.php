@@ -23,34 +23,42 @@ class Validator {
 	private const ARRAY_TYPES = [ 'multicheck' ];
 
 	/**
-	 * Sanitizes all fields defined in the schema.
+	 * Sanitizes fields defined in the schema.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $raw      Raw POST data keyed by field ID.
-	 * @param array $schema   Normalised schema.
-	 * @param array $existing Previously saved values keyed by field ID. Used to
-	 *                        preserve readonly fields against form tampering.
+	 * @param array       $raw      Raw POST data keyed by field ID.
+	 * @param array       $schema   Normalised schema.
+	 * @param array       $existing Previously saved values keyed by field ID. Used to
+	 *                              preserve readonly fields against form tampering.
+	 * @param string|null $page_id  When given, restricts sanitization to this page's
+	 *                              fields only; when null, all pages' fields are sanitized.
 	 * @return array Sanitized values keyed by field ID.
 	 */
-	public function sanitize( array $raw, array $schema, array $existing = [] ): array {
+	public function sanitize( array $raw, array $schema, array $existing = [], ?string $page_id = null ): array {
 		$clean = [];
 
-		foreach ( $schema['tabs'] as $tab ) {
-			foreach ( $tab['fields'] as $field ) {
-				if ( in_array( $field['type'], self::DISPLAY_ONLY_TYPES, true ) ) {
-					continue;
+		foreach ( $schema['pages'] as $page ) {
+			if ( null !== $page_id && $page['id'] !== $page_id ) {
+				continue;
+			}
+
+			foreach ( $page['tabs'] as $tab ) {
+				foreach ( $tab['fields'] as $field ) {
+					if ( in_array( $field['type'], self::DISPLAY_ONLY_TYPES, true ) ) {
+						continue;
+					}
+
+					$id = $field['id'];
+
+					if ( ! empty( $field['readonly'] ) ) {
+						$clean[ $id ] = array_key_exists( $id, $existing ) ? $existing[ $id ] : $field['default'];
+						continue;
+					}
+
+					$value        = $raw[ $id ] ?? null;
+					$clean[ $id ] = $this->sanitize_field( $field, $value );
 				}
-
-				$id = $field['id'];
-
-				if ( ! empty( $field['readonly'] ) ) {
-					$clean[ $id ] = array_key_exists( $id, $existing ) ? $existing[ $id ] : $field['default'];
-					continue;
-				}
-
-				$value        = $raw[ $id ] ?? null;
-				$clean[ $id ] = $this->sanitize_field( $field, $value );
 			}
 		}
 

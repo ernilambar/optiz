@@ -53,9 +53,11 @@ class Registry {
 	public function set_schema( array $schema ): void {
 		$this->schema   = $schema;
 		$this->defaults = [];
-		foreach ( $schema['tabs'] as $tab ) {
-			foreach ( $tab['fields'] as $field ) {
-				$this->defaults[ $field['id'] ] = $field['default'];
+		foreach ( $schema['pages'] as $page ) {
+			foreach ( $page['tabs'] as $tab ) {
+				foreach ( $tab['fields'] as $field ) {
+					$this->defaults[ $field['id'] ] = $field['default'];
+				}
 			}
 		}
 	}
@@ -69,6 +71,23 @@ class Registry {
 	 */
 	public function get_schema(): array {
 		return $this->schema;
+	}
+
+	/**
+	 * Returns a single normalised page by ID.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $page_id Page ID.
+	 * @return array|null Normalised page configuration, or null if no page has this ID.
+	 */
+	public function get_page( string $page_id ): ?array {
+		foreach ( $this->schema['pages'] ?? [] as $page ) {
+			if ( $page['id'] === $page_id ) {
+				return $page;
+			}
+		}
+		return null;
 	}
 
 	/**

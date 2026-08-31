@@ -17,16 +17,30 @@ namespace Nilambar\Optiz;
 class Assets {
 
 	/**
-	 * Enqueues styles and scripts for the settings page.
+	 * Enqueues styles and scripts for the current settings page.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string $hook      Current admin page hook.
-	 * @param string $page_hook Registered settings page hook.
-	 * @param array  $schema    Normalised schema.
+	 * @param string               $hook       Current admin page hook.
+	 * @param array<string,string> $page_hooks Registered page hooks keyed by page ID.
+	 * @param array                $schema     Normalised schema.
 	 */
-	public function enqueue( string $hook, string $page_hook, array $schema ): void {
-		if ( $hook !== $page_hook ) {
+	public function enqueue( string $hook, array $page_hooks, array $schema ): void {
+		$page_id = array_search( $hook, $page_hooks, true );
+
+		if ( false === $page_id ) {
+			return;
+		}
+
+		$page = null;
+		foreach ( $schema['pages'] as $candidate ) {
+			if ( $candidate['id'] === $page_id ) {
+				$page = $candidate;
+				break;
+			}
+		}
+
+		if ( null === $page ) {
 			return;
 		}
 
@@ -34,7 +48,7 @@ class Assets {
 		$has_code_field = false;
 		$has_media      = false;
 
-		foreach ( $schema['tabs'] as $tab ) {
+		foreach ( $page['tabs'] as $tab ) {
 			foreach ( $tab['fields'] as $field ) {
 				if ( ! empty( $field['conditions'] ) ) {
 					$rules[] = [

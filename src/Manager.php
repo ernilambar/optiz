@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Nilambar\Optiz;
 
+use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -55,13 +56,13 @@ class Manager {
 	private ?array $option_cache = null;
 
 	/**
-	 * WP admin page hook suffix returned by add_menu_page / add_submenu_page.
+	 * WP admin page hook suffixes keyed by page ID.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @var string|null
+	 * @var array<string,string>
 	 */
-	private ?string $page_hook = null;
+	private array $page_hooks = [];
 
 	/**
 	 * Constructor — use register() to create instances.
@@ -116,7 +117,16 @@ class Manager {
 		} else {
 			$instance->registry->set_schema( $parsed );
 			add_action( 'admin_menu', [ $instance, 'register_page' ] );
-			add_action( 'admin_post_optiz_save_' . $key, [ $instance, 'handle_save' ] );
+
+			foreach ( $parsed['pages'] as $page ) {
+				$page_id = $page['id'];
+				add_action(
+					'admin_post_optiz_save_' . $key . '_' . $page_id,
+					static function () use ( $instance, $page_id ) {
+						$instance->handle_save( $page_id );
+					}
+				);
+			}
 		}
 
 		self::$instances[ $key ] = $instance;
@@ -196,6 +206,10 @@ class Manager {
 	/**
 	 * Sanitizes and persists option data to the database.
 	 *
+	 * Replaces the entire option row: any schema field absent from $data is
+	 * sanitized against a null/empty value, not preserved from the existing row
+	 * (except readonly fields, which are always preserved).
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param array $data Raw field values keyed by field ID.
@@ -216,10 +230,25 @@ class Manager {
 		$validator = new Validator();
 		$clean     = $validator->sanitize( $data, $schema, $existing );
 
+		return $this->write_option( $clean );
+	}
+
+	/**
+	 * Writes a value to the option row and reports whether the write succeeded.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $value Value to persist.
+	 * @return bool True on success, false on DB error.
+	 */
+	private function write_option( array $value ): bool {
+		$schema = $this->registry->get_schema();
+
 		global $wpdb;
 		$wpdb->last_error = '';
 
-		update_option( $schema['option_key'], $clean );
+		update_option( $schema['option_key'], $value, $schema['autoload'] ?? null );
+
 		$this->option_cache = null;
 
 		// update_option returns false both on DB failure and when the value is
@@ -229,7 +258,9 @@ class Manager {
 	}
 
 	/**
-	 * Registers the admin settings page via add_menu_page or add_submenu_page.
+	 * Registers the admin settings pages via add_menu_page or add_submenu_page.
+	 *
+	 * Pages are registered in ascending `position` order (stable for ties).
 	 *
 	 * @since 1.0.0
 	 */
@@ -240,73 +271,90 @@ class Manager {
 			return;
 		}
 
-		$page = $schema['page'];
+		$pages = $schema['pages'];
+		usort( $pages, static fn( array $a, array $b ): int => $a['position'] <=> $b['position'] );
 
-		if ( ! empty( $page['parent_slug'] ) ) {
-			$hook            = add_submenu_page(
-				$page['parent_slug'],
-				$page['title'],
-				$page['menu_title'],
-				$page['capability'],
-				$page['menu_slug'],
-				[ $this, 'render_page' ]
-			);
-			$this->page_hook = $hook ? $hook : null;
-		} else {
-			$hook            = add_menu_page(
-				$page['title'],
-				$page['menu_title'],
-				$page['capability'],
-				$page['menu_slug'],
-				[ $this, 'render_page' ],
-				$page['icon_url'],
-				$page['position']
-			);
-			$this->page_hook = $hook ? $hook : null;
+		foreach ( $pages as $page ) {
+			$page_id  = $page['id'];
+			$callback = function () use ( $page_id ) {
+				$this->render_page( $page_id );
+			};
+
+			if ( ! empty( $page['parent_slug'] ) ) {
+				$hook = add_submenu_page(
+					$page['parent_slug'],
+					$page['title'],
+					$page['menu_title'],
+					$page['capability'],
+					$page['menu_slug'],
+					$callback
+				);
+			} else {
+				$hook = add_menu_page(
+					$page['title'],
+					$page['menu_title'],
+					$page['capability'],
+					$page['menu_slug'],
+					$callback,
+					$page['icon_url'],
+					$page['position']
+				);
+			}
+
+			if ( $hook ) {
+				$this->page_hooks[ $page_id ] = $hook;
+			}
 		}
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
 
 	/**
-	 * Enqueues assets for the settings page; called on admin_enqueue_scripts.
+	 * Enqueues assets for the current settings page; called on admin_enqueue_scripts.
 	 *
 	 * @since 1.0.0
 	 *
 	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_assets( string $hook ): void {
-		if ( null === $this->page_hook ) {
-			return;
-		}
-
-		( new Assets() )->enqueue( $hook, $this->page_hook, $this->registry->get_schema() );
+		( new Assets() )->enqueue( $hook, $this->page_hooks, $this->registry->get_schema() );
 	}
 
 	/**
-	 * Outputs the HTML for the admin settings page.
+	 * Outputs the HTML for one admin settings page.
 	 *
 	 * @since 1.0.0
+	 *
+	 * @param string $page_id Page ID being rendered.
 	 */
-	public function render_page(): void {
-		( new Renderer() )->render_page( $this->registry, $this->key );
+	public function render_page( string $page_id ): void {
+		( new Renderer() )->render_page( $this->registry, $this->key, $page_id );
 	}
 
 	/**
-	 * Returns the full admin URL for the settings page.
+	 * Returns the full admin URL for a settings page.
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param string $page_id Page ID.
 	 * @return string Admin URL, or empty string if no schema is loaded.
+	 * @throws InvalidArgumentException If $page_id does not match a registered page.
 	 */
-	public function get_page_url(): string {
+	public function get_page_url( string $page_id ): string {
 		$schema = $this->registry->get_schema();
 
 		if ( empty( $schema ) ) {
 			return '';
 		}
 
-		$page   = $schema['page'];
+		$page = $this->registry->get_page( $page_id );
+
+		if ( null === $page ) {
+			throw new InvalidArgumentException(
+				sprintf( 'Optiz page "%s" is not registered for instance "%s".', esc_html( $page_id ), esc_html( $this->key ) )
+			);
+		}
+
 		$parent = 'admin.php';
 		if ( ! empty( $page['parent_slug'] ) && '.php' === substr( $page['parent_slug'], -4 ) ) {
 			$parent = $page['parent_slug'];
@@ -316,18 +364,31 @@ class Manager {
 	}
 
 	/**
-	 * Handles the form POST: verifies nonce, sanitizes, saves, and redirects.
+	 * Handles the form POST for one page: verifies nonce, sanitizes, merges, saves, and redirects.
+	 *
+	 * Only the submitting page's fields are sanitized; the sanitized result is
+	 * merged into the existing option so other pages' saved values are untouched.
 	 *
 	 * @since 1.0.0
+	 *
+	 * @param string $page_id Page ID that submitted the form.
 	 */
-	public function handle_save(): void {
+	public function handle_save( string $page_id ): void {
 		$schema     = $this->registry->get_schema();
 		$option_key = $schema['option_key'];
 
-		check_admin_referer( 'optiz_save_' . $this->key, 'optiz_nonce' );
+		check_admin_referer( 'optiz_save_' . $this->key . '_' . $page_id, 'optiz_nonce' );
 
-		$data   = isset( $_POST[ $option_key ] ) ? wp_unslash( (array) $_POST[ $option_key ] ) : [];
-		$result = $this->save( $data );
+		$existing = get_option( $option_key, [] );
+		if ( ! is_array( $existing ) ) {
+			$existing = [];
+		}
+
+		$data      = isset( $_POST[ $option_key ] ) ? wp_unslash( (array) $_POST[ $option_key ] ) : [];
+		$validator = new Validator();
+		$clean     = $validator->sanitize( $data, $schema, $existing, $page_id );
+
+		$result = $this->write_option( array_merge( $existing, $clean ) );
 
 		$notice = $result
 			? [
@@ -339,14 +400,16 @@ class Manager {
 				'message' => __( 'Settings save failed.' ),
 			];
 
-		set_transient( 'optiz_notices_' . $this->key, $notice, 30 );
+		set_transient( 'optiz_notices_' . $this->key . '_' . $page_id, $notice, 30 );
+
+		$page = $this->registry->get_page( $page_id );
 
 		$args = [];
-		if ( count( $schema['tabs'] ) > 1 && isset( $_POST['current_tab'] ) ) {
+		if ( null !== $page && count( $page['tabs'] ) > 1 && isset( $_POST['current_tab'] ) ) {
 			$args['tab'] = sanitize_key( wp_unslash( $_POST['current_tab'] ) );
 		}
 
-		wp_safe_redirect( add_query_arg( $args, $this->get_page_url() ) );
+		wp_safe_redirect( add_query_arg( $args, $this->get_page_url( $page_id ) ) );
 		exit;
 	}
 }

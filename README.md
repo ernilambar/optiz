@@ -29,26 +29,29 @@ Register the schema on `init` (or later). Registering earlier — e.g. on `plugi
 add_action( 'init', function () {
     \Nilambar\Optiz\Manager::register( 'my_plugin', [
         'option_key' => 'my_plugin_options',
-        'page'       => [
-            'title'     => __( 'My Plugin', 'textdomain' ),
-            'menu_slug' => 'my-plugin-settings',
-        ],
-        'tabs' => [
+        'pages'      => [
             [
-                'id'     => 'general',
-                'label'  => __( 'General', 'textdomain' ),
-                'fields' => [
+                'id'        => 'general',
+                'title'     => __( 'My Plugin', 'textdomain' ),
+                'menu_slug' => 'my-plugin-settings',
+                'tabs'      => [
                     [
-                        'id'      => 'api_key',
-                        'type'    => 'text',
-                        'label'   => __( 'API Key', 'textdomain' ),
-                        'default' => '',
-                    ],
-                    [
-                        'id'      => 'enable_feature',
-                        'type'    => 'toggle',
-                        'label'   => __( 'Enable Feature', 'textdomain' ),
-                        'default' => false,
+                        'id'     => 'general',
+                        'label'  => __( 'General', 'textdomain' ),
+                        'fields' => [
+                            [
+                                'id'      => 'api_key',
+                                'type'    => 'text',
+                                'label'   => __( 'API Key', 'textdomain' ),
+                                'default' => '',
+                            ],
+                            [
+                                'id'      => 'enable_feature',
+                                'type'    => 'toggle',
+                                'label'   => __( 'Enable Feature', 'textdomain' ),
+                                'default' => false,
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -57,10 +60,16 @@ add_action( 'init', function () {
 } );
 ```
 
-Read a saved value anywhere in the plugin:
+A registration holds one or more `pages`; every field ID must be unique across all of them. Read a saved value anywhere in the plugin — the lookup works regardless of which page owns the field:
 
 ```php
 $value = \Nilambar\Optiz\Manager::instance( 'my_plugin' )->get( 'api_key' );
+```
+
+Get the admin URL for a specific page:
+
+```php
+$url = \Nilambar\Optiz\Manager::instance( 'my_plugin' )->get_page_url( 'general' );
 ```
 
 ## Documentation

@@ -26,12 +26,18 @@ class Renderer {
 	 *
 	 * @param Registry $registry Registry instance holding the schema.
 	 * @param string   $key      Plugin key.
+	 * @param string   $page_id  Page ID being rendered.
 	 */
-	public function render_page( Registry $registry, string $key ): void {
+	public function render_page( Registry $registry, string $key, string $page_id ): void {
 		$schema     = $registry->get_schema();
-		$tabs       = $schema['tabs'];
 		$option_key = $schema['option_key'];
-		$page       = $schema['page'];
+		$page       = $registry->get_page( $page_id );
+
+		if ( null === $page ) {
+			return;
+		}
+
+		$tabs = $page['tabs'];
 
 		$tab_ids    = array_column( $tabs, 'id' );
 		$active_tab = isset( $_GET['tab'] ) && in_array( sanitize_key( $_GET['tab'] ), $tab_ids, true )
@@ -46,17 +52,19 @@ class Renderer {
 		echo '<div class="wrap optiz-wrap">';
 		echo '<h1>' . esc_html( $page['title'] ) . '</h1>';
 
-		$notice = get_transient( 'optiz_notices_' . $key );
+		$notice_group = 'optiz_' . $key . '_' . $page_id;
+		$notice_key   = 'optiz_notices_' . $key . '_' . $page_id;
+		$notice       = get_transient( $notice_key );
 		if ( ! empty( $notice ) ) {
-			delete_transient( 'optiz_notices_' . $key );
-			add_settings_error( 'optiz_' . $key, 'optiz_notice', $notice['message'], $notice['type'] );
+			delete_transient( $notice_key );
+			add_settings_error( $notice_group, 'optiz_notice', $notice['message'], $notice['type'] );
 		}
-		settings_errors( 'optiz_' . $key );
+		settings_errors( $notice_group );
 
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
-		echo '<input type="hidden" name="action" value="' . esc_attr( 'optiz_save_' . $key ) . '">';
+		echo '<input type="hidden" name="action" value="' . esc_attr( 'optiz_save_' . $key . '_' . $page_id ) . '">';
 
-		wp_nonce_field( 'optiz_save_' . $key, 'optiz_nonce' );
+		wp_nonce_field( 'optiz_save_' . $key . '_' . $page_id, 'optiz_nonce' );
 
 		if ( count( $tabs ) > 1 ) {
 			$this->render_tabs( $tabs, $active_tab, $page['menu_slug'], $page['parent_slug'] );
