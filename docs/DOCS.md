@@ -5,7 +5,7 @@ Detailed reference for schema, fields, sanitization, and the runtime API. For a 
 ## Table of contents
 
 - [Schema](#schema)
-- [Page](#page)
+- [Pages](#pages)
 - [Tabs](#tabs)
 - [Fields](#fields)
   - [Common keys](#common-keys)
@@ -22,25 +22,50 @@ A schema is a plain PHP array passed to `Manager::register()`. Register from a c
 
 After parsing, the schema is normalised — defaults are filled in, conditions are unwrapped, and missing optional keys are populated. Top-level keys:
 
-| Key          | Type    | Required | Description                                           |
-|--------------|---------|----------|-------------------------------------------------------|
-| `option_key` | string  | yes      | The `wp_options` row name. Sanitized with `sanitize_key()`. |
-| `page`       | array   | yes      | Admin page configuration. See [Page](#page).          |
-| `tabs`       | array   | yes      | One or more tab definitions. See [Tabs](#tabs).       |
+| Key          | Type       | Required | Description                                                     |
+|--------------|------------|----------|-------------------------------------------------------------------|
+| `option_key` | string     | yes      | The `wp_options` row name. Sanitized with `sanitize_key()`. All pages share this single row. |
+| `pages`      | array      | yes      | One or more page definitions. See [Pages](#pages).               |
+| `autoload`   | bool\|null | no       | Passed through to `update_option()`'s `$autoload` argument on every save. `null` (default) leaves WordPress's own default behaviour untouched. |
 
 Validation errors return a `WP_Error`; `Manager::register()` calls `_doing_it_wrong()` and skips hook registration.
 
-## Page
+Every field ID must be unique across **all** pages in the registration — settings share one flat namespace and one option row regardless of which page they're edited on. A collision returns a `duplicate_field_id` `WP_Error` listing every colliding field ID together with the page IDs it appears on.
 
-| Key           | Type    | Required | Default            | Description                                                   |
-|---------------|---------|----------|--------------------|---------------------------------------------------------------|
-| `title`       | string  | yes      | —                  | Page `<title>`.                                               |
-| `menu_title`  | string  | no       | `title`            | Sidebar label.                                                |
-| `menu_slug`   | string  | yes      | —                  | URL slug (`?page=<slug>`).                                    |
-| `capability`  | string  | no       | `manage_options`   | Required user capability.                                     |
-| `icon_url`    | string  | no       | `''`               | Dashicons URL or class. Used only for top-level menus.        |
-| `position`    | int     | no       | `null`             | Top-level menu position.                                      |
-| `parent_slug` | string  | no       | `''`               | If set, registers as a submenu under that parent.             |
+## Pages
+
+Each page is an array with its own `id`, admin-menu placement, and `tabs`.
+
+```php
+'pages' => [
+    [
+        'id'        => 'general',
+        'title'     => __( 'General', 'textdomain' ),
+        'menu_slug' => 'my-plugin',
+        'tabs'      => [ /* ... */ ],
+    ],
+    [
+        'id'          => 'integrations',
+        'title'       => __( 'Integrations', 'textdomain' ),
+        'menu_slug'   => 'my-plugin-integrations',
+        'parent_slug' => 'options-general.php',
+        'position'    => 20,
+        'tabs'        => [ /* ... */ ],
+    ],
+],
+```
+
+| Key           | Type    | Required | Default            | Description                                                            |
+|---------------|---------|----------|--------------------|--------------------------------------------------------------------------|
+| `id`          | string  | yes      | —                  | Unique page ID within the registration. Sanitized with `sanitize_key()`. Used in save actions, nonces, notice transients, and `get_page_url()`. |
+| `title`       | string  | yes      | —                  | Page `<title>`.                                                         |
+| `menu_title`  | string  | no       | `title`            | Sidebar label.                                                          |
+| `menu_slug`   | string  | yes      | —                  | URL slug (`?page=<slug>`). Must be unique across all pages.             |
+| `capability`  | string  | no       | `manage_options`   | Required user capability.                                              |
+| `icon_url`    | string  | no       | `''`               | Dashicons URL or class. Used only for top-level menus.                  |
+| `position`    | int     | no       | index in `pages`   | Controls `admin_menu` registration order (lower registers first); also passed through as the top-level menu position for menus without a `parent_slug`. |
+| `parent_slug` | string  | no       | `''`               | If set, registers as a submenu under that parent.                       |
+| `tabs`        | array   | yes      | —                  | One or more tab definitions. See [Tabs](#tabs).                         |
 
 ## Tabs
 
@@ -196,7 +221,7 @@ use Nilambar\Optiz\Manager;
 Manager::register( string $key, array $schema ): Manager
 ```
 
-Registers a schema and hooks `admin_menu` and `admin_post_optiz_save_{key}`. Re-registering the same key triggers `_doing_it_wrong()` and returns the existing instance. A schema with validation errors logs the error and returns a Manager that does not register hooks.
+Registers a schema and hooks `admin_menu` plus one `admin_post_optiz_save_{key}_{page_id}` action per page. Re-registering the same key triggers `_doing_it_wrong()` and returns the existing instance. A schema with validation errors logs the error and returns a Manager that does not register hooks.
 
 ### Instance lookup
 
@@ -220,24 +245,26 @@ Resolution order: saved DB value → field `default` → `$fallback`. Values are
 Manager::instance( 'my_plugin' )->save( array $data ): bool
 ```
 
-Sanitizes `$data` against the schema and writes via `update_option()`. Returns `false` only on a real DB error — `update_option()` also returns false when the value is unchanged, so the Manager checks `$wpdb->last_error` to distinguish.
+Sanitizes `$data` against the **entire schema** (all pages) and replaces the whole option row via `update_option()`. This is page-agnostic — any field absent from `$data` is sanitized against an empty value rather than preserved (readonly fields are always preserved from the existing row). Returns `false` only on a real DB error — `update_option()` also returns false when the value is unchanged, so the Manager checks `$wpdb->last_error` to distinguish. `autoload`, if set on the schema, is passed through as `update_option()`'s third argument.
+
+To update only some fields without resetting the rest, read the current values with `get()`, merge in your changes, and pass the full merged array to `save()`.
 
 ### Page URL
 
 ```php
-$url = Manager::instance( 'my_plugin' )->get_page_url();
+$url = Manager::instance( 'my_plugin' )->get_page_url( string $page_id );
 ```
 
-Returns the full admin URL for the registered page.
+Returns the full admin URL for the given page. `$page_id` is required — there is no default page. Throws `\InvalidArgumentException` if `$page_id` does not match a registered page.
 
 ## Form submission
 
-The rendered form posts to `admin-post.php` with `action=optiz_save_{key}`. `handle_save()`:
+Each page renders its own `<form>`, posting to `admin-post.php` with `action=optiz_save_{key}_{page_id}`. `handle_save( string $page_id )`:
 
-1. Verifies the nonce (`optiz_save_{key}` / `optiz_nonce`).
+1. Verifies the nonce (`optiz_save_{key}_{page_id}` / `optiz_nonce`).
 2. Extracts `$_POST[$option_key]` as an associative array.
-3. Calls `Validator::sanitize()` then `update_option()`.
-4. Stores a transient notice (`optiz_notices_{key}`, 30s TTL).
-5. Redirects back to the page, preserving the active tab via `?tab={current_tab}`.
+3. Calls `Validator::sanitize()` scoped to that page's fields only, then merges the result into the existing option row — so submitting one page's form never resets another page's saved values.
+4. Stores a transient notice (`optiz_notices_{key}_{page_id}`, 30s TTL).
+5. Redirects back to that page, preserving the active tab via `?tab={current_tab}`.
 
 Field inputs are named `{option_key}[{field_id}]`. `multicheck` uses `{option_key}[{field_id}][]`. `checkbox` and `toggle` emit a hidden `value="0"` companion immediately before the visible input so unchecked boxes still submit a value.

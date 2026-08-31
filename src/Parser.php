@@ -81,57 +81,140 @@ class Parser {
 			return new WP_Error( 'missing_option_key', '"option_key" is required and must be a non-empty string.' );
 		}
 
-		if ( empty( $raw['page'] ) || ! is_array( $raw['page'] ) ) {
-			return new WP_Error( 'missing_page', '"page" is required and must be an array.' );
-		}
-
-		if ( empty( $raw['page']['title'] ) ) {
-			return new WP_Error( 'missing_page_title', '"page.title" is required.' );
-		}
-
-		if ( empty( $raw['page']['menu_slug'] ) ) {
-			return new WP_Error( 'missing_page_menu_slug', '"page.menu_slug" is required.' );
-		}
-
-		if ( empty( $raw['tabs'] ) || ! is_array( $raw['tabs'] ) ) {
-			return new WP_Error( 'missing_tabs', '"tabs" is required and must be a non-empty array.' );
+		if ( empty( $raw['pages'] ) || ! is_array( $raw['pages'] ) ) {
+			return new WP_Error( 'missing_pages', '"pages" is required and must be a non-empty array.' );
 		}
 
 		$schema = [
 			'option_key' => sanitize_key( $raw['option_key'] ),
-			'page'       => $this->normalize_page( $raw['page'] ),
-			'tabs'       => [],
+			'autoload'   => array_key_exists( 'autoload', $raw ) ? (bool) $raw['autoload'] : null,
+			'pages'      => [],
 		];
 
-		foreach ( $raw['tabs'] as $tab ) {
-			$result = $this->normalize_tab( $tab );
+		$page_ids   = [];
+		$menu_slugs = [];
+
+		foreach ( array_values( $raw['pages'] ) as $index => $page ) {
+			$result = $this->normalize_page( $page, $index );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
-			$schema['tabs'][] = $result;
+
+			if ( in_array( $result['id'], $page_ids, true ) ) {
+				return new WP_Error(
+					'duplicate_page_id',
+					sprintf( 'Duplicate page ID "%s".', $result['id'] )
+				);
+			}
+			$page_ids[] = $result['id'];
+
+			if ( in_array( $result['menu_slug'], $menu_slugs, true ) ) {
+				return new WP_Error(
+					'duplicate_menu_slug',
+					sprintf( 'Duplicate menu slug "%s" on page "%s".', $result['menu_slug'], $result['id'] )
+				);
+			}
+			$menu_slugs[] = $result['menu_slug'];
+
+			$schema['pages'][] = $result;
 		}
+
+		$field_page_map = $this->build_field_page_map( $schema['pages'] );
+		if ( is_wp_error( $field_page_map ) ) {
+			return $field_page_map;
+		}
+		$schema['field_page_map'] = $field_page_map;
 
 		return $schema;
 	}
 
 	/**
-	 * Normalises the page configuration with defaults.
+	 * Normalises a single page configuration, including its tabs.
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array $page Raw page configuration.
-	 * @return array Normalised page configuration.
+	 * @param array $page  Raw page configuration.
+	 * @param int   $index Position of the page within the raw "pages" array, used as the default `position`.
+	 * @return array|WP_Error Normalised page configuration on success, WP_Error on failure.
 	 */
-	private function normalize_page( array $page ): array {
+	private function normalize_page( array $page, int $index ) {
+		if ( empty( $page['id'] ) || ! is_string( $page['id'] ) ) {
+			return new WP_Error( 'missing_page_id', 'Each page must include an "id".' );
+		}
+
+		if ( empty( $page['title'] ) ) {
+			return new WP_Error( 'missing_page_title', sprintf( 'Page "%s" must include a "title".', $page['id'] ) );
+		}
+
+		if ( empty( $page['menu_slug'] ) ) {
+			return new WP_Error( 'missing_page_menu_slug', sprintf( 'Page "%s" must include a "menu_slug".', $page['id'] ) );
+		}
+
+		if ( empty( $page['tabs'] ) || ! is_array( $page['tabs'] ) ) {
+			return new WP_Error( 'missing_tabs', sprintf( 'Page "%s" must include a "tabs" array.', $page['id'] ) );
+		}
+
+		$tabs = [];
+		foreach ( $page['tabs'] as $tab ) {
+			$result = $this->normalize_tab( $tab );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			$tabs[] = $result;
+		}
+
 		return [
+			'id'          => sanitize_key( $page['id'] ),
 			'title'       => $page['title'],
 			'menu_title'  => $page['menu_title'] ?? $page['title'],
 			'menu_slug'   => $page['menu_slug'],
 			'capability'  => $page['capability'] ?? 'manage_options',
 			'icon_url'    => $page['icon_url'] ?? '',
-			'position'    => $page['position'] ?? null,
+			'position'    => $page['position'] ?? $index,
 			'parent_slug' => $page['parent_slug'] ?? '',
+			'tabs'        => $tabs,
 		];
+	}
+
+	/**
+	 * Builds the field ID → page ID map, erroring on any field ID collision across pages.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $pages Normalised pages array.
+	 * @return array|WP_Error Map of field ID to page ID on success, WP_Error on collision.
+	 */
+	private function build_field_page_map( array $pages ) {
+		$occurrences = [];
+
+		foreach ( $pages as $page ) {
+			foreach ( $page['tabs'] as $tab ) {
+				foreach ( $tab['fields'] as $field ) {
+					$occurrences[ $field['id'] ][] = $page['id'];
+				}
+			}
+		}
+
+		$duplicates = array_filter( $occurrences, static fn( array $page_ids ): bool => count( $page_ids ) > 1 );
+
+		if ( ! empty( $duplicates ) ) {
+			$parts = [];
+			foreach ( $duplicates as $field_id => $page_ids ) {
+				$parts[] = sprintf( '"%s" (pages: %s)', $field_id, implode( ', ', $page_ids ) );
+			}
+
+			return new WP_Error(
+				'duplicate_field_id',
+				sprintf( 'Duplicate field ID(s) found across pages: %s.', implode( '; ', $parts ) )
+			);
+		}
+
+		$map = [];
+		foreach ( $occurrences as $field_id => $page_ids ) {
+			$map[ $field_id ] = $page_ids[0];
+		}
+
+		return $map;
 	}
 
 	/**

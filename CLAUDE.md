@@ -65,33 +65,42 @@ Manager                  ← orchestrates: WP hooks, get(), save()
 
 ### Normalised schema contract
 
-`Parser::parse()` guarantees that after it runs, the schema always has the shape below — downstream classes never null-check optional keys:
+`Parser::parse()` guarantees that after it runs, the schema always has the shape below — downstream classes never null-check optional keys. One registration holds N pages under a single `option_key`; field IDs are unique across all of them, and `Parser` builds a `field_page_map` to prove it:
 
 ```php
 [
-  'option_key' => 'sanitized_string',
-  'page'       => [ 'title', 'menu_title', 'menu_slug', 'capability', 'icon_url', 'position', 'parent_slug' ],
-  'tabs'       => [
+  'option_key'     => 'sanitized_string',
+  'autoload'       => bool|null,       // passthrough to update_option(); null = WP default
+  'pages'          => [
     [
-      'id'     => 'string',
-      'label'  => 'string',
-      'fields' => [
+      'id'          => 'string',        // sanitized like option_key; unique across pages
+      'title', 'menu_title', 'menu_slug', 'capability', 'icon_url', 'position', 'parent_slug',
+      'tabs'        => [
         [
-          'id', 'type', 'label', 'default',      // always present
-          'description', 'attributes', 'choices', // always present (empty defaults)
-          'conditions',                            // always array-of-arrays, never flat
-          'sanitize_callback',                     // null or callable
-          // type-specific keys added only for the relevant type:
-          'mode',   // code fields only: 'text' | 'css' | 'js'
-          'layout', // radio and multicheck only: 'vertical' | 'horizontal' | 'compact'
+          'id'     => 'string',
+          'label'  => 'string',
+          'fields' => [
+            [
+              'id', 'type', 'label', 'default',      // always present
+              'description', 'attributes', 'choices', // always present (empty defaults)
+              'conditions',                            // always array-of-arrays, never flat
+              'sanitize_callback',                     // null or callable
+              // type-specific keys added only for the relevant type:
+              'mode',   // code fields only: 'text' | 'css' | 'js'
+              'layout', // radio and multicheck only: 'vertical' | 'horizontal' | 'compact'
+            ],
+          ],
         ],
       ],
     ],
   ],
+  'field_page_map' => [ 'field_id' => 'page_id', ... ], // every field, flat across all pages
 ]
 ```
 
 `conditions` is always normalised to an array of condition arrays: `[['field'=>'x','value'=>'y'], ...]`. A developer-supplied shorthand `['field'=>'x','value'=>'y']` is wrapped automatically.
+
+`position` defaults to the page's index within the `pages` array when omitted; `Manager::register_page()` sorts pages by `position` (stable) before registering each via `add_menu_page`/`add_submenu_page`. `Parser::parse()` returns `WP_Error` for a duplicate page `id`, a duplicate `menu_slug` across pages, or a duplicate field ID across pages — the message for the latter lists every colliding field ID together with the page IDs it appears on.
 
 ### Type-specific field options
 
@@ -107,13 +116,13 @@ $m = Manager::register('my_plugin', $schema);
 $value = Manager::instance('my_plugin')->get('field_id');
 ```
 
-`register()` hooks `admin_menu` → `register_page()` (which runs `add_menu_page`/`add_submenu_page` and then registers `admin_enqueue_scripts`), and `admin_post_optiz_save_{key}` → `handle_save()`.
+`register()` hooks `admin_menu` → `register_page()` (loops all pages, sorted by `position`, running `add_menu_page`/`add_submenu_page` for each and storing a `page_id → hook` map, then registers `admin_enqueue_scripts` once), and one `admin_post_optiz_save_{key}_{page_id}` → `handle_save($page_id)` action per page.
 
-`get()` lazily calls `get_option()` once per request (cached in `$option_cache`). Return priority: saved DB value → schema `default` → `$default` argument. `save()` invalidates the cache.
+`get()` lazily calls `get_option()` once per request (cached in `$option_cache`), reading the single flat option row regardless of which page owns the field. Return priority: saved DB value → schema `default` → `$default` argument. `save()` invalidates the cache; it sanitizes against the **entire** schema (all pages) and replaces the whole row — it stays page-agnostic, matching pre-multi-page behavior.
 
 ### Form submission flow
 
-The form POSTs to `admin-post.php` with `action=optiz_save_{key}`. Fields are named `{option_key}[{field_id}]`. `handle_save()` verifies the nonce, extracts `$_POST[$option_key]`, passes it to `Validator::sanitize()`, calls `update_option()`, then redirects back with `?updated=1` (success) or `?updated=0` (failure) and `?tab={current_tab}`.
+Each page renders its own `<form>`, posting to `admin-post.php` with `action=optiz_save_{key}_{page_id}`. Fields are named `{option_key}[{field_id}]`. `handle_save($page_id)` verifies the nonce (`optiz_save_{key}_{page_id}`), extracts `$_POST[$option_key]`, passes it to `Validator::sanitize()` **scoped to that page's fields only**, merges the sanitized result into the existing option row (so one page's save never resets another page's values), calls `update_option()`, then redirects back to that page's URL preserving `?tab={current_tab}`. The per-page notice transient is `optiz_notices_{key}_{page_id}`.
 
 ### checkbox and toggle fields
 

@@ -30,20 +30,51 @@ class ValidatorTest extends TestCase {
 	private function make_schema( array $fields ): array {
 		$raw = [
 			'option_key' => 'test_options',
-			'page'       => [
-				'title'     => 'Test',
-				'menu_slug' => 'test',
-			],
-			'tabs'       => [
+			'pages'      => [
 				[
-					'id'     => 'general',
-					'label'  => 'General',
-					'fields' => $fields,
+					'id'        => 'general',
+					'title'     => 'Test',
+					'menu_slug' => 'test',
+					'tabs'      => [
+						[
+							'id'     => 'general',
+							'label'  => 'General',
+							'fields' => $fields,
+						],
+					],
 				],
 			],
 		];
 		$result = $this->parser->parse( $raw );
 		$this->assertIsArray( $result, 'make_schema: parser returned WP_Error — check field definitions.' );
+		return $result;
+	}
+
+	/** Builds a normalised two-page schema, each page holding the given fields. */
+	private function make_multi_page_schema( array $page_one_fields, array $page_two_fields ): array {
+		$raw = [
+			'option_key' => 'test_options',
+			'pages'      => [
+				[
+					'id'        => 'page_one',
+					'title'     => 'Page One',
+					'menu_slug' => 'page-one',
+					'tabs'      => [
+						[ 'id' => 'general', 'label' => 'General', 'fields' => $page_one_fields ],
+					],
+				],
+				[
+					'id'        => 'page_two',
+					'title'     => 'Page Two',
+					'menu_slug' => 'page-two',
+					'tabs'      => [
+						[ 'id' => 'general', 'label' => 'General', 'fields' => $page_two_fields ],
+					],
+				],
+			],
+		];
+		$result = $this->parser->parse( $raw );
+		$this->assertIsArray( $result, 'make_multi_page_schema: parser returned WP_Error — check field definitions.' );
 		return $result;
 	}
 
@@ -321,5 +352,41 @@ class ValidatorTest extends TestCase {
 		$result = $this->validator->sanitize( [ 'my_heading' => 'x', 'my_text' => 'hello' ], $schema );
 		$this->assertArrayNotHasKey( 'my_heading', $result );
 		$this->assertArrayHasKey( 'my_text', $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// Multi-page scoping
+	// -------------------------------------------------------------------------
+
+	public function test_sanitize_without_page_id_covers_all_pages(): void {
+		$schema = $this->make_multi_page_schema(
+			[ [ 'id' => 'field_one', 'type' => 'text', 'label' => 'One' ] ],
+			[ [ 'id' => 'field_two', 'type' => 'text', 'label' => 'Two' ] ]
+		);
+		$result = $this->validator->sanitize( [ 'field_one' => 'a', 'field_two' => 'b' ], $schema );
+		$this->assertArrayHasKey( 'field_one', $result );
+		$this->assertArrayHasKey( 'field_two', $result );
+	}
+
+	public function test_sanitize_with_page_id_only_covers_that_pages_fields(): void {
+		$schema = $this->make_multi_page_schema(
+			[ [ 'id' => 'field_one', 'type' => 'text', 'label' => 'One' ] ],
+			[ [ 'id' => 'field_two', 'type' => 'text', 'label' => 'Two' ] ]
+		);
+		$result = $this->validator->sanitize( [ 'field_one' => 'a', 'field_two' => 'b' ], $schema, [], 'page_one' );
+		$this->assertArrayHasKey( 'field_one', $result );
+		$this->assertArrayNotHasKey( 'field_two', $result );
+	}
+
+	public function test_sanitize_scoped_to_page_does_not_reset_other_pages_fields_when_merged(): void {
+		$schema   = $this->make_multi_page_schema(
+			[ [ 'id' => 'field_one', 'type' => 'text', 'label' => 'One' ] ],
+			[ [ 'id' => 'field_two', 'type' => 'text', 'label' => 'Two' ] ]
+		);
+		$existing = [ 'field_one' => 'existing-one', 'field_two' => 'existing-two' ];
+		$clean    = $this->validator->sanitize( [ 'field_one' => 'updated-one' ], $schema, $existing, 'page_one' );
+		$merged   = array_merge( $existing, $clean );
+		$this->assertSame( 'updated-one', $merged['field_one'] );
+		$this->assertSame( 'existing-two', $merged['field_two'] );
 	}
 }
