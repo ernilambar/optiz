@@ -5,6 +5,7 @@
 .gitignore export-ignore
 .phpcs.xml.dist export-ignore
 CLAUDE.md export-ignore
+easy-replace.json export-ignore
 package.json export-ignore
 phpunit.xml.dist export-ignore
 .prettierignore export-ignore
@@ -13,4 +14,4 @@ pnpm-lock.yaml export-ignore
 postcss.config.cjs export-ignore
 resources export-ignore
 tests export-ignore
-vite.config.js export-ignore
+vite.config.mjs export-ignore

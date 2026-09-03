@@ -76,6 +76,8 @@ $url = \Nilambar\Optiz\Manager::instance( 'my_plugin' )->get_page_url( 'general'
 
 See [docs/DOCS.md](docs/DOCS.md) for the full reference: schema, all field types, type-specific options, sanitization, conditional fields, and the Manager API.
 
-## License
+## Copyright and License
 
-MIT
+This project is licensed under the [MIT](http://opensource.org/licenses/MIT).
+
+2026 &copy; [Nilambar Sharma](https://www.nilambar.net).

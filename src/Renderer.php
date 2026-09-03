@@ -168,7 +168,7 @@ class Renderer {
 		}
 
 		if ( ! $is_visible ) {
-			$wrapper_attrs .= ' style="display:none;"';
+			$wrapper_attrs .= ' hidden';
 		}
 
 		$row_class = 'optiz-field-wrap optiz-field-type-' . esc_attr( $field['type'] ) . ' optiz-field-id-' . esc_attr( $field['id'] );

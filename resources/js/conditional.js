@@ -1,85 +1,21 @@
 'use strict';
 
+import { showmoRules } from 'showmo';
+import 'showmo/showmo.css';
+
 export function initConditional() {
-	if (
-		typeof window.optiz === 'undefined' ||
-		! window.optiz.conditional ||
-		! window.optiz.conditional.rules ||
-		! window.optiz.conditional.rules.length
-	) {
-		return;
-	}
-
-	const rules = window.optiz.conditional.rules;
-
-	const getFieldWrapper = ( fieldId ) =>
-		document.querySelector( '[data-field-id="' + fieldId + '"]' );
-
-	const getFieldValue = ( fieldId ) => {
-		const inputs = Array.from( document.querySelectorAll( '[name$="[' + fieldId + ']"]' ) );
-		if ( ! inputs.length ) return null;
-
-		const checkbox = inputs.find( ( el ) => el.type === 'checkbox' );
-		if ( checkbox ) return checkbox.checked;
-
-		const checkedRadio = inputs.find( ( el ) => el.type === 'radio' && el.checked );
-		if ( checkedRadio ) return checkedRadio.value;
-
-		return inputs[ inputs.length - 1 ].value;
-	};
-
-	const isVisible = ( fieldId ) => {
-		const wrapper = getFieldWrapper( fieldId );
-		return ! wrapper || wrapper.style.display !== 'none';
-	};
-
-	const conditionMet = ( condition, value ) => {
-		const expected = condition.value;
-		const compare = condition.compare || '===';
-
-		if ( typeof expected === 'boolean' ) {
-			const match = Boolean( value ) === expected;
-			return compare === '!==' ? ! match : match;
-		}
-
-		const strValue = String( value );
-		const strExpected = String( expected );
-		return compare === '!==' ? strValue !== strExpected : strValue === strExpected;
-	};
-
-	const evaluateAll = () => {
-		let changed = true;
-		let iterations = 0;
-
-		while ( changed && iterations < 10 ) {
-			changed = false;
-			iterations++;
-
-			rules.forEach( ( rule ) => {
-				const wrapper = getFieldWrapper( rule.fieldId );
-				if ( ! wrapper ) return;
-
-				const shouldShow = rule.conditions.every( ( condition ) => {
-					if ( ! isVisible( condition.field ) ) return false;
-					return conditionMet( condition, getFieldValue( condition.field ) );
-				} );
-
-				const currentlyVisible = wrapper.style.display !== 'none';
-				if ( shouldShow !== currentlyVisible ) {
-					wrapper.style.display = shouldShow ? '' : 'none';
-					changed = true;
-				}
-			} );
-		}
-	};
-
 	const init = () => {
-		evaluateAll();
-		document.addEventListener( 'change', ( event ) => {
-			if ( event.target.matches( 'input, select, textarea' ) ) {
-				evaluateAll();
-			}
-		} );
+		const data = window.optiz && window.optiz.conditional;
+
+		if ( ! data || ! data.rules || ! data.rules.length ) {
+			return;
+		}
+
+		const rules = data.rules.map( toShowmoRule ).filter( ( rule ) => rule.when.length );
+
+		if ( rules.length ) {
+			showmoRules( rules );
+		}
 	};
 
 	if ( document.readyState === 'loading' ) {
@@ -87,4 +23,41 @@ export function initConditional() {
 	} else {
 		init();
 	}
+}
+
+function toShowmoRule( rule ) {
+	return {
+		target: '[data-field-id="' + rule.fieldId + '"]',
+		when: rule.conditions.map( toWhen ),
+	};
+}
+
+function toWhen( condition ) {
+	const el = document.getElementById( 'optiz_' + condition.field );
+	const source = el ? '#' + el.id : sourceFor( condition.field );
+
+	if ( el && el.type === 'checkbox' ) {
+		const want =
+			condition.compare === '!==' ? ! toBool( condition.value ) : toBool( condition.value );
+
+		return want ? { source } : { source, isNot: '1' };
+	}
+
+	return condition.compare === '!=='
+		? { source, isNot: condition.value }
+		: { source, is: condition.value };
+}
+
+function sourceFor( field ) {
+	const inputs = document.querySelectorAll( '[name$="[' + field + ']"]' );
+
+	return inputs.length ? inputs[ 0 ].name : '#optiz_' + field;
+}
+
+function toBool( value ) {
+	if ( typeof value === 'boolean' ) {
+		return value;
+	}
+
+	return value === '1' || value === 1 || value === 'true';
 }

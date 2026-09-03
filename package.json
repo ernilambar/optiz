@@ -1,27 +1,50 @@
 {
 	"name": "optiz",
-	"private": true,
+	"version": "1.0.1",
+	"description": "Lightweight schema-driven settings framework for WordPress.",
+	"keywords": [
+		"admin",
+		"framework",
+		"options",
+		"schema",
+		"settings",
+		"wordpress"
+	],
+	"homepage": "https://github.com/ernilambar/optiz",
+	"bugs": {
+		"url": "https://github.com/ernilambar/optiz/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ernilambar/optiz.git"
+	},
+	"license": "MIT",
+	"author": "Nilambar Sharma",
+	"main": "init.php",
 	"scripts": {
 		"build": "vite build",
 		"dev": "vite build --watch",
-		"format": "prettier \"**/*.{cjs,css,js,json,mjs}\" --write --log-level warn"
+		"format": "prettier \"**/*.{cjs,css,js,json,mjs}\" --write --log-level warn",
+		"version": "easy-replace-in-files"
 	},
 	"browserslist": "> 1%, last 2 versions, not dead",
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"esbuild"
-		]
+	"dependencies": {
+		"@melloware/coloris": "^0.25.0",
+		"showmo": "github:ernilambar/showmo#v0.1.0"
 	},
 	"devDependencies": {
-		"@wordpress/prettier-config": "^4.45.0",
+		"@wordpress/prettier-config": "^4.54.0",
 		"browserslist-to-esbuild": "^2.1.1",
-		"postcss": "^8.5.14",
-		"postcss-nested": "^7.0.2",
-		"postcss-preset-env": "^11.2.1",
+		"easy-replace-in-files": "^2.0.0",
+		"postcss": "^8.5.26",
+		"postcss-nested": "^8.0.1",
+		"postcss-preset-env": "^11.5.1",
 		"prettier": "npm:wp-prettier@^3.0.3",
-		"vite": "^8.0.10"
+		"vite": "^8.2.2"
 	},
-	"dependencies": {
-		"@melloware/coloris": "^0.25.0"
+	"packageManager": "pnpm@12.0.0",
+	"engines": {
+		"node": ">=22",
+		"pnpm": ">=12"
 	}
 }
