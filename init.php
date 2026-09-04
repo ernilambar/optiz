@@ -68,7 +68,7 @@ if ( ! class_exists( 'OptizBootstrap', false ) ) {
 }
 
 ( static function () {
-	$version = '1.0.0';
+	$version = '1.0.1';
 
 	OptizBootstrap::add_candidate( $version, __DIR__ );
 

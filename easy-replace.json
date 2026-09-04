@@ -1,0 +1,10 @@
+{
+	"easyReplaceInFiles": [
+		{
+			"files": "$$package__main$$",
+			"from": "\\$version = '(.+)';",
+			"type": "regex",
+			"to": "$version = '$$package__version$$';"
+		}
+	]
+}
