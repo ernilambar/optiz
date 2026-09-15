@@ -20,7 +20,7 @@ composer lint     # parallel-lint syntax check + PHPCS
 composer test     # PHPUnit (bootstrap stubs WP functions)
 pnpm build        # compile resources/ → assets/optiz.{js,css}
 pnpm dev          # watch mode
-pnpm format       # Prettier over JS / CSS / JSON
+pnpm format       # Prettier (uses @wordpress/prettier-config)
 pnpm run version  # sync $version in init.php from package.json
 ```
 

@@ -9,7 +9,6 @@ easy-replace.json export-ignore
 package.json export-ignore
 phpunit.xml.dist export-ignore
 .prettierignore export-ignore
-.prettierrc.mjs export-ignore
 pnpm-lock.yaml export-ignore
 postcss.config.cjs export-ignore
 resources export-ignore

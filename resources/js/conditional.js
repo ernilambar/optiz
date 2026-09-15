@@ -11,7 +11,9 @@ export function initConditional() {
 			return;
 		}
 
-		const rules = data.rules.map( toShowmoRule ).filter( ( rule ) => rule.when.length );
+		const rules = data.rules
+			.map( toShowmoRule )
+			.filter( ( rule ) => rule.when.length );
 
 		if ( rules.length ) {
 			showmoRules( rules );
@@ -38,7 +40,9 @@ function toWhen( condition ) {
 
 	if ( el && el.type === 'checkbox' ) {
 		const want =
-			condition.compare === '!==' ? ! toBool( condition.value ) : toBool( condition.value );
+			condition.compare === '!=='
+				? ! toBool( condition.value )
+				: toBool( condition.value );
 
 		return want ? { source } : { source, isNot: '1' };
 	}
