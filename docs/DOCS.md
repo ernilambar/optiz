@@ -8,9 +8,9 @@ Detailed reference for schema, fields, sanitization, and the runtime API. For a 
 - [Pages](#pages)
 - [Tabs](#tabs)
 - [Fields](#fields)
-  - [Common keys](#common-keys)
-  - [Type-specific keys](#type-specific-keys)
-  - [Field types](#field-types)
+    - [Common keys](#common-keys)
+    - [Type-specific keys](#type-specific-keys)
+    - [Field types](#field-types)
 - [Sanitization](#sanitization)
 - [Conditional fields](#conditional-fields)
 - [Manager API](#manager-api)
@@ -22,10 +22,10 @@ A schema is a plain PHP array passed to `Manager::register()`. Register from a c
 
 After parsing, the schema is normalised — defaults are filled in, conditions are unwrapped, and missing optional keys are populated. Top-level keys:
 
-| Key          | Type       | Required | Description                                                     |
-|--------------|------------|----------|-------------------------------------------------------------------|
-| `option_key` | string     | yes      | The `wp_options` row name. Sanitized with `sanitize_key()`. All pages share this single row. |
-| `pages`      | array      | yes      | One or more page definitions. See [Pages](#pages).               |
+| Key          | Type       | Required | Description                                                                                                                                    |
+| ------------ | ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `option_key` | string     | yes      | The `wp_options` row name. Sanitized with `sanitize_key()`. All pages share this single row.                                                   |
+| `pages`      | array      | yes      | One or more page definitions. See [Pages](#pages).                                                                                             |
 | `autoload`   | bool\|null | no       | Passed through to `update_option()`'s `$autoload` argument on every save. `null` (default) leaves WordPress's own default behaviour untouched. |
 
 Validation errors return a `WP_Error`; `Manager::register()` calls `_doing_it_wrong()` and skips hook registration.
@@ -55,17 +55,17 @@ Each page is an array with its own `id`, admin-menu placement, and `tabs`.
 ],
 ```
 
-| Key           | Type    | Required | Default            | Description                                                            |
-|---------------|---------|----------|--------------------|--------------------------------------------------------------------------|
-| `id`          | string  | yes      | —                  | Unique page ID within the registration. Sanitized with `sanitize_key()`. Used in save actions, nonces, notice transients, and `get_page_url()`. |
-| `title`       | string  | yes      | —                  | Page `<title>`.                                                         |
-| `menu_title`  | string  | no       | `title`            | Sidebar label.                                                          |
-| `menu_slug`   | string  | yes      | —                  | URL slug (`?page=<slug>`). Must be unique across all pages.             |
-| `capability`  | string  | no       | `manage_options`   | Required user capability.                                              |
-| `icon_url`    | string  | no       | `''`               | Dashicons URL or class. Used only for top-level menus.                  |
-| `position`    | int     | no       | index in `pages`   | Controls `admin_menu` registration order (lower registers first); also passed through as the top-level menu position for menus without a `parent_slug`. |
-| `parent_slug` | string  | no       | `''`               | If set, registers as a submenu under that parent.                       |
-| `tabs`        | array   | yes      | —                  | One or more tab definitions. See [Tabs](#tabs).                         |
+| Key           | Type   | Required | Default          | Description                                                                                                                                             |
+| ------------- | ------ | -------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`          | string | yes      | —                | Unique page ID within the registration. Sanitized with `sanitize_key()`. Used in save actions, nonces, notice transients, and `get_page_url()`.         |
+| `title`       | string | yes      | —                | Page `<title>`.                                                                                                                                         |
+| `menu_title`  | string | no       | `title`          | Sidebar label.                                                                                                                                          |
+| `menu_slug`   | string | yes      | —                | URL slug (`?page=<slug>`). Must be unique across all pages.                                                                                             |
+| `capability`  | string | no       | `manage_options` | Required user capability.                                                                                                                               |
+| `icon_url`    | string | no       | `''`             | Dashicons URL or class. Used only for top-level menus.                                                                                                  |
+| `position`    | int    | no       | index in `pages` | Controls `admin_menu` registration order (lower registers first); also passed through as the top-level menu position for menus without a `parent_slug`. |
+| `parent_slug` | string | no       | `''`             | If set, registers as a submenu under that parent.                                                                                                       |
+| `tabs`        | array  | yes      | —                | One or more tab definitions. See [Tabs](#tabs).                                                                                                         |
 
 ## Tabs
 
@@ -87,18 +87,18 @@ Each tab is an array with `id`, `label`, and `fields`. When only one tab is defi
 
 These keys are accepted on every field. After parsing, they are always present (with empty defaults) so renderers and validators do not need to null-check.
 
-| Key                 | Type      | Default                      | Description                                                                       |
-|---------------------|-----------|------------------------------|-----------------------------------------------------------------------------------|
-| `id`                | string    | required                     | Unique field ID within the option.                                                |
-| `type`              | string    | required                     | One of the [field types](#field-types).                                           |
-| `label`             | string    | required (except `hidden`)   | Label shown in the row header.                                                    |
-| `default`           | mixed     | `''` / `false` / `[]`        | Fallback when no DB value exists. Defaults to `false` for booleans and `[]` for arrays. |
-| `description`       | string    | `''`                         | Help text under the field. For `message` fields, this is the rendered content.    |
-| `attributes`        | array     | `[]`                         | HTML attributes added to the input element (e.g. `min`, `step`, `data-*`).        |
-| `class`             | string    | `''`                         | Extra CSS class on the input.                                                     |
-| `choices`           | array     | `[]`                         | Required for choice-based types. Keys are stored values; values are labels.       |
-| `conditions`        | array     | `[]`                         | See [Conditional fields](#conditional-fields).                                    |
-| `sanitize_callback` | callable  | `null`                       | Custom sanitizer. See [Sanitization](#sanitization).                              |
+| Key                 | Type     | Default                    | Description                                                                             |
+| ------------------- | -------- | -------------------------- | --------------------------------------------------------------------------------------- |
+| `id`                | string   | required                   | Unique field ID within the option.                                                      |
+| `type`              | string   | required                   | One of the [field types](#field-types).                                                 |
+| `label`             | string   | required (except `hidden`) | Label shown in the row header.                                                          |
+| `default`           | mixed    | `''` / `false` / `[]`      | Fallback when no DB value exists. Defaults to `false` for booleans and `[]` for arrays. |
+| `description`       | string   | `''`                       | Help text under the field. For `message` fields, this is the rendered content.          |
+| `attributes`        | array    | `[]`                       | HTML attributes added to the input element (e.g. `min`, `step`, `data-*`).              |
+| `class`             | string   | `''`                       | Extra CSS class on the input.                                                           |
+| `choices`           | array    | `[]`                       | Required for choice-based types. Keys are stored values; values are labels.             |
+| `conditions`        | array    | `[]`                       | See [Conditional fields](#conditional-fields).                                          |
+| `sanitize_callback` | callable | `null`                     | Custom sanitizer. See [Sanitization](#sanitization).                                    |
 
 `attributes` is reserved for raw HTML element attributes. Use the type-specific keys below for behavior options.
 
@@ -106,41 +106,41 @@ These keys are accepted on every field. After parsing, they are always present (
 
 Type-specific options sit at the top level of the field array — never nested inside `attributes`.
 
-| Key           | Applies to                       | Values                          | Default     | Description                                              |
-|---------------|----------------------------------|---------------------------------|-------------|----------------------------------------------------------|
-| `placeholder` | `text`, `email`, `url`, `number`, `password`, `textarea`, `code` | string | `''`        | HTML placeholder.                                        |
-| `rows`        | `textarea`, `code`               | int (>0)                        | `5`         | Visible rows. Falls back to `5` if non-positive.         |
-| `side_text`   | `checkbox`, `toggle`             | string                          | `''`        | Inline text shown next to the input.                     |
-| `layout`      | `radio`, `radio_image`, `multicheck` | `vertical` \| `horizontal`  | `vertical`  | Stacked vs inline arrangement.                           |
-| `mode`        | `code`                           | `text` \| `css` \| `js`         | `text`      | CodeMirror syntax mode.                                  |
-| `allow_null`  | `select`                         | bool                            | `false`     | Adds an empty `— Select —` option.                       |
-| `notice_type` | `message`                        | `success` \| `error` \| `warning` \| `info` | `''`        | Sets the left-border colour based on type.  |
+| Key           | Applies to                                                       | Values                                      | Default    | Description                                      |
+| ------------- | ---------------------------------------------------------------- | ------------------------------------------- | ---------- | ------------------------------------------------ |
+| `placeholder` | `text`, `email`, `url`, `number`, `password`, `textarea`, `code` | string                                      | `''`       | HTML placeholder.                                |
+| `rows`        | `textarea`, `code`                                               | int (>0)                                    | `5`        | Visible rows. Falls back to `5` if non-positive. |
+| `side_text`   | `checkbox`, `toggle`                                             | string                                      | `''`       | Inline text shown next to the input.             |
+| `layout`      | `radio`, `radio_image`, `multicheck`                             | `vertical` \| `horizontal`                  | `vertical` | Stacked vs inline arrangement.                   |
+| `mode`        | `code`                                                           | `text` \| `css` \| `js`                     | `text`     | CodeMirror syntax mode.                          |
+| `allow_null`  | `select`                                                         | bool                                        | `false`    | Adds an empty `— Select —` option.               |
+| `notice_type` | `message`                                                        | `success` \| `error` \| `warning` \| `info` | `''`       | Sets the left-border colour based on type.       |
 
 ### Field types
 
-| Type          | Storage  | Notes                                                                             |
-|---------------|----------|-----------------------------------------------------------------------------------|
-| `text`        | string   | Single-line input.                                                                |
-| `textarea`    | string   | Multi-line. Supports `rows`, `placeholder`.                                       |
-| `email`       | string   | Sanitized via `sanitize_email()`.                                                 |
-| `url`         | string   | Sanitized via `esc_url_raw()`.                                                    |
-| `number`      | int/float| Cast to int when `step` is integer; otherwise float.                              |
-| `password`    | string   | Same sanitizer as `text`. Value is rendered into the HTML — keep secrets out.     |
-| `hidden`      | string   | No label required. Sanitized as text.                                             |
-| `checkbox`    | bool     | Standard checkbox. Hidden `value="0"` companion ensures unchecked posts as false. |
-| `toggle`      | bool     | iOS-style switch. Storage identical to `checkbox`.                                |
-| `select`      | string   | Requires `choices`. Optional `allow_null`.                                        |
-| `radio`       | string   | Requires `choices`. Supports `layout`.                                            |
-| `radio_image` | string   | Requires `choices` mapping value → image URL. Supports `layout`.                  |
-| `buttonset`   | string   | Requires `choices`. Renders as a styled button group.                             |
-| `multicheck`  | array    | Requires `choices`. Stores an array of selected keys. Supports `layout`.          |
-| `color`       | string   | WP color picker. Sanitized via `sanitize_hex_color()`.                            |
-| `image`       | string   | Image URL with WP media frame. Sanitized via `esc_url_raw()`.                     |
-| `file`        | string   | Any-file URL with WP media frame (no preview). Sanitized via `esc_url_raw()`.     |
-| `code`        | string   | CodeMirror editor. Stored verbatim — no sanitization.                             |
-| `editor`      | string   | TinyMCE (`wp_editor`). Sanitized via `wp_kses_post()`.                            |
-| `heading`     | —        | Display-only. Renders `label` as an `<h2>`; `description` (if set) renders below as `<p class="description">`. Skipped during save. |
-| `message`     | —        | Display-only. Renders `description` (allows `wp_kses_post` HTML). Optional `notice_type` styles the left border. Skipped during save. |
+| Type          | Storage   | Notes                                                                                                                                 |
+| ------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`        | string    | Single-line input.                                                                                                                    |
+| `textarea`    | string    | Multi-line. Supports `rows`, `placeholder`.                                                                                           |
+| `email`       | string    | Sanitized via `sanitize_email()`.                                                                                                     |
+| `url`         | string    | Sanitized via `esc_url_raw()`.                                                                                                        |
+| `number`      | int/float | Cast to int when `step` is integer; otherwise float.                                                                                  |
+| `password`    | string    | Same sanitizer as `text`. Value is rendered into the HTML — keep secrets out.                                                         |
+| `hidden`      | string    | No label required. Sanitized as text.                                                                                                 |
+| `checkbox`    | bool      | Standard checkbox. Hidden `value="0"` companion ensures unchecked posts as false.                                                     |
+| `toggle`      | bool      | iOS-style switch. Storage identical to `checkbox`.                                                                                    |
+| `select`      | string    | Requires `choices`. Optional `allow_null`.                                                                                            |
+| `radio`       | string    | Requires `choices`. Supports `layout`.                                                                                                |
+| `radio_image` | string    | Requires `choices` mapping value → image URL. Supports `layout`.                                                                      |
+| `buttonset`   | string    | Requires `choices`. Renders as a styled button group.                                                                                 |
+| `multicheck`  | array     | Requires `choices`. Stores an array of selected keys. Supports `layout`.                                                              |
+| `color`       | string    | WP color picker. Sanitized via `sanitize_hex_color()`.                                                                                |
+| `image`       | string    | Image URL with WP media frame. Sanitized via `esc_url_raw()`.                                                                         |
+| `file`        | string    | Any-file URL with WP media frame (no preview). Sanitized via `esc_url_raw()`.                                                         |
+| `code`        | string    | CodeMirror editor. Stored verbatim — no sanitization.                                                                                 |
+| `editor`      | string    | TinyMCE (`wp_editor`). Sanitized via `wp_kses_post()`.                                                                                |
+| `heading`     | —         | Display-only. Renders `label` as an `<h2>`; `description` (if set) renders below as `<p class="description">`. Skipped during save.   |
+| `message`     | —         | Display-only. Renders `description` (allows `wp_kses_post` HTML). Optional `notice_type` styles the left border. Skipped during save. |
 
 ## Sanitization
 
@@ -148,9 +148,9 @@ Every field is sanitized on save before being passed to `update_option()`. The p
 
 1. If `sanitize_callback` is set and callable, it is called with the raw value.
 2. The return type is checked against the field type:
-   - `multicheck` → must return an array.
-   - `checkbox`, `toggle` → must return a bool.
-   - All others → must return a scalar or `null`.
+    - `multicheck` → must return an array.
+    - `checkbox`, `toggle` → must return a bool.
+    - All others → must return a scalar or `null`.
 3. If the return type is wrong, `_doing_it_wrong()` fires and the built-in sanitizer runs as a fallback.
 4. If `sanitize_callback` is not set, the built-in sanitizer runs directly.
 
@@ -158,18 +158,18 @@ Display-only types (`heading`, `message`) are skipped entirely during sanitizati
 
 ### Built-in sanitizers
 
-| Type                                 | Sanitizer                                                                        |
-|--------------------------------------|----------------------------------------------------------------------------------|
-| `text`, `textarea`, `password`, `hidden` | `sanitize_text_field()` / `sanitize_textarea_field()`                        |
-| `email`                              | `sanitize_email()`                                                               |
-| `url`, `image`, `file`               | `esc_url_raw()`                                                                  |
-| `number`                             | `intval()` when `attributes.step` is integer; otherwise `floatval()`             |
-| `checkbox`, `toggle`                 | Cast to `bool`                                                                   |
-| `select`, `radio`, `radio_image`, `buttonset` | Must match a `choices` key; otherwise falls back to `default`           |
-| `color`                              | `sanitize_hex_color()`; falls back to `default` when invalid                     |
-| `multicheck`                         | Filtered array of valid choice keys                                              |
-| `code`                               | Stored verbatim (no sanitization)                                                |
-| `editor`                             | `wp_kses_post()`                                                                 |
+| Type                                          | Sanitizer                                                            |
+| --------------------------------------------- | -------------------------------------------------------------------- |
+| `text`, `textarea`, `password`, `hidden`      | `sanitize_text_field()` / `sanitize_textarea_field()`                |
+| `email`                                       | `sanitize_email()`                                                   |
+| `url`, `image`, `file`                        | `esc_url_raw()`                                                      |
+| `number`                                      | `intval()` when `attributes.step` is integer; otherwise `floatval()` |
+| `checkbox`, `toggle`                          | Cast to `bool`                                                       |
+| `select`, `radio`, `radio_image`, `buttonset` | Must match a `choices` key; otherwise falls back to `default`        |
+| `color`                                       | `sanitize_hex_color()`; falls back to `default` when invalid         |
+| `multicheck`                                  | Filtered array of valid choice keys                                  |
+| `code`                                        | Stored verbatim (no sanitization)                                    |
+| `editor`                                      | `wp_kses_post()`                                                     |
 
 ### Custom sanitization
 
@@ -201,11 +201,11 @@ A field can be conditionally shown or hidden based on another field's value. Pas
 
 Condition keys:
 
-| Key       | Default | Values             | Description                                |
-|-----------|---------|--------------------|--------------------------------------------|
-| `field`   | —       | string             | ID of the source field.                    |
-| `value`   | —       | scalar             | Value to compare against.                  |
-| `compare` | `===`   | `===` \| `!==`     | Comparison operator.                       |
+| Key       | Default | Values         | Description               |
+| --------- | ------- | -------------- | ------------------------- |
+| `field`   | —       | string         | ID of the source field.   |
+| `value`   | —       | scalar         | Value to compare against. |
+| `compare` | `===`   | `===` \| `!==` | Comparison operator.      |
 
 Evaluation runs client-side as a fixpoint loop: when a source field is itself hidden, dependent fields are also hidden. Chained dependencies resolve regardless of declaration order.
 

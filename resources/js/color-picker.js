@@ -9,7 +9,12 @@ export function initColorPicker() {
 		if ( ! pickers.length ) return;
 
 		Coloris.init();
-		Coloris( { el: '.optiz-color-picker', themeMode: 'auto', format: 'hex', alpha: false } );
+		Coloris( {
+			el: '.optiz-color-picker',
+			themeMode: 'auto',
+			format: 'hex',
+			alpha: false,
+		} );
 
 		pickers.forEach( function ( el ) {
 			const format = el.dataset.format || 'hex';
