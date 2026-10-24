@@ -48,7 +48,7 @@ class Parser {
 
 	private const DISPLAY_ONLY_TYPES = [ 'heading', 'message' ];
 
-	private const LABEL_OPTIONAL_TYPES = [ 'hidden' ];
+	private const LABEL_OPTIONAL_TYPES = [ 'hidden', 'message' ];
 
 	private const CODE_MODES = [ 'text', 'css', 'js' ];
 

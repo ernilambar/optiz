@@ -110,6 +110,27 @@ class ParserTest extends TestCase {
 		$this->assertSame( 'invalid_field_type', $result->get_error_code() );
 	}
 
+	public function test_field_without_label_returns_wp_error(): void {
+		$schema = $this->valid_schema;
+		unset( $schema['pages'][0]['tabs'][0]['fields'][0]['label'] );
+		$result = $this->parser->parse( $schema );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'missing_field_label', $result->get_error_code() );
+	}
+
+	public function test_message_field_without_label_parses_successfully(): void {
+		$schema                                     = $this->valid_schema;
+		$schema['pages'][0]['tabs'][0]['fields'][0] = [
+			'id'          => 'notice',
+			'type'        => 'message',
+			'description' => 'No providers found.',
+			'notice_type' => 'warning',
+		];
+		$result = $this->parser->parse( $schema );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'No providers found.', $result['pages'][0]['tabs'][0]['fields'][0]['description'] );
+	}
+
 	public function test_choice_integer_keys_are_cast_to_string(): void {
 		$schema                              = $this->valid_schema;
 		$schema['pages'][0]['tabs'][0]['fields'][0] = [
