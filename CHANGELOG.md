@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 - 2026-10-24
+
+- Fixed: `message` fields no longer require a `label`
+
 ## 1.0.1 - 2026-09-04
 
 - Changed: conditional field visibility rebuilt on the `showmo` library

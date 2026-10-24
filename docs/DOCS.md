@@ -87,18 +87,18 @@ Each tab is an array with `id`, `label`, and `fields`. When only one tab is defi
 
 These keys are accepted on every field. After parsing, they are always present (with empty defaults) so renderers and validators do not need to null-check.
 
-| Key                 | Type     | Default                    | Description                                                                             |
-| ------------------- | -------- | -------------------------- | --------------------------------------------------------------------------------------- |
-| `id`                | string   | required                   | Unique field ID within the option.                                                      |
-| `type`              | string   | required                   | One of the [field types](#field-types).                                                 |
-| `label`             | string   | required (except `hidden`) | Label shown in the row header.                                                          |
-| `default`           | mixed    | `''` / `false` / `[]`      | Fallback when no DB value exists. Defaults to `false` for booleans and `[]` for arrays. |
-| `description`       | string   | `''`                       | Help text under the field. For `message` fields, this is the rendered content.          |
-| `attributes`        | array    | `[]`                       | HTML attributes added to the input element (e.g. `min`, `step`, `data-*`).              |
-| `class`             | string   | `''`                       | Extra CSS class on the input.                                                           |
-| `choices`           | array    | `[]`                       | Required for choice-based types. Keys are stored values; values are labels.             |
-| `conditions`        | array    | `[]`                       | See [Conditional fields](#conditional-fields).                                          |
-| `sanitize_callback` | callable | `null`                     | Custom sanitizer. See [Sanitization](#sanitization).                                    |
+| Key                 | Type     | Default                               | Description                                                                             |
+| ------------------- | -------- | ------------------------------------- | --------------------------------------------------------------------------------------- |
+| `id`                | string   | required                              | Unique field ID within the option.                                                      |
+| `type`              | string   | required                              | One of the [field types](#field-types).                                                 |
+| `label`             | string   | required (except `hidden`, `message`) | Label shown in the row header.                                                          |
+| `default`           | mixed    | `''` / `false` / `[]`                 | Fallback when no DB value exists. Defaults to `false` for booleans and `[]` for arrays. |
+| `description`       | string   | `''`                                  | Help text under the field. For `message` fields, this is the rendered content.          |
+| `attributes`        | array    | `[]`                                  | HTML attributes added to the input element (e.g. `min`, `step`, `data-*`).              |
+| `class`             | string   | `''`                                  | Extra CSS class on the input.                                                           |
+| `choices`           | array    | `[]`                                  | Required for choice-based types. Keys are stored values; values are labels.             |
+| `conditions`        | array    | `[]`                                  | See [Conditional fields](#conditional-fields).                                          |
+| `sanitize_callback` | callable | `null`                                | Custom sanitizer. See [Sanitization](#sanitization).                                    |
 
 `attributes` is reserved for raw HTML element attributes. Use the type-specific keys below for behavior options.
 
