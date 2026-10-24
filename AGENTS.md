@@ -24,6 +24,29 @@ pnpm format       # Prettier (uses @wordpress/prettier-config)
 pnpm run version  # sync $version in init.php from package.json
 ```
 
+## Release
+
+Version has a single source of truth: `package.json`. `init.php` also carries `$version`, but that value is **generated** — never edit it by hand. `easy-replace.json` rewrites the `$version = '...';` line from `package.json` when you run the sync script.
+
+```bash
+# 1. Bump "version" in package.json (e.g. 1.0.1 → 1.0.2)
+# 2. Sync init.php from package.json
+pnpm run version
+
+# 3. Add a dated entry at the top of CHANGELOG.md
+## X.Y.Z - YYYY-MM-DD
+- Fixed: ...
+
+# 4. Verify the release
+composer lint && composer test && pnpm build && pnpm format
+```
+
+Checklist:
+
+- `package.json` version and `init.php` `$version` must match — `pnpm run version` is the only supported way to update the latter.
+- `assets/optiz.{js,css}` are committed build artifacts; rebuild and commit them if `resources/` changed since the last release.
+- `CHANGELOG.md` entries are newest-first and grouped under the exact release version and date.
+
 ## Architecture
 
 ### Entry point and version election
